@@ -1531,7 +1531,7 @@ document.getElementById('main-panel').addEventListener('click', async e => {
     else if (val === 'headshot') state.showHeadshotPicker = !state.showHeadshotPicker;
     renderMain();
   }
-  else if (action === 'picklogo') { setF('logo_url', val); renderMain(); }
+  else if (action === 'picklogo') { setF('hero_logo_url', val); renderMain(); }
   else if (action === 'setformlogomode') { setF('logo_mode', val); renderMain(); }
   else if (action === 'clearhero') { setF('hero_image_url',''); delete state.formData._heroCropDataUrl; renderMain(); }
   else if (action === 'clearlogourl') { state.formData.hero_logo_url = ''; renderMain(); }
@@ -1815,7 +1815,7 @@ async function deleteAT(id) {
       "#wyl-tl em{font-style:italic;font-weight:700;color:#fff}"+
       "#wyl-btn{display:inline-block;padding:17px 40px;border-radius:50px;background:"+co.accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 28px "+co.accent_glow+";white-space:nowrap}";
     // Also set background directly on wyl-hero as fallback
-    el.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px 48px;min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";
+    el.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px max(48px, calc((100vw - 1400px)/2 + 48px));min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";
     // Gradient overlay using the gradient color
     var ov=document.createElement("div");ov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";
     el.appendChild(ov);
@@ -1977,6 +1977,7 @@ function genCombinedScript(emp) {
   sc += '    })\n';
   sc += '  ]).then(function(results){\n';
   sc += '    var e=results[0][0];\n';
+  sc += '    var teamData=results[2]||[];\n';
   sc += '    var co=results[1][0]||{accent:"#2bbfef",accent_light:"rgba(43,191,239,.15)",accent_glow:"rgba(43,191,239,.35)"};\n';
   sc += '    if(!e){console.warn("WYL: employee not found",S);return;}\n';
   sc += '\n';
@@ -2075,7 +2076,7 @@ function genCombinedScript(emp) {
   sc += '    var fnDiv=document.createElement("div");fnDiv.style.cssText="font-size:48px;font-weight:900;color:"+textPrimary+";line-height:1;letter-spacing:-1px";fnDiv.textContent=e.first_name||"";\n';
   sc += '    var lnDiv=document.createElement("div");lnDiv.style.cssText="font-family:Yellowtail,cursive;font-size:54px;color:"+accent+";line-height:1.1";lnDiv.textContent=e.last_name||"";\n';
   sc += '    var tagsDiv=document.createElement("div");tagsDiv.style.cssText="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px";tagsDiv.innerHTML=tags;\n';
-  sc += '    nameInfo.appendChild(fnDiv);nameInfo.appendChild(lnDiv);nameInfo.appendChild(tagsDiv);if(socialHtml){var socInline=document.createElement("div");socInline.style.cssText="margin-top:10px";socInline.innerHTML=socialHtml;nameInfo.appendChild(socInline);}\n';
+  sc += '    var lnRow=document.createElement("div");lnRow.style.cssText="display:flex;align-items:center;gap:12px;flex-wrap:wrap";lnRow.appendChild(lnDiv);if(socialHtml){var socInline=document.createElement("div");socInline.innerHTML=socialHtml;lnRow.appendChild(socInline);}nameInfo.appendChild(fnDiv);nameInfo.appendChild(lnRow);nameInfo.appendChild(tagsDiv);\n';
   sc += '    if(e.nmls){var nmlsP=document.createElement("p");nmlsP.style.cssText="font-size:12px;color:"+textSecondary+";margin-top:6px";nmlsP.textContent="NMLS #"+e.nmls;nameInfo.appendChild(nmlsP);}\n';
   sc += '    nameRow.appendChild(photoWrap);nameRow.appendChild(nameInfo);leftCol.appendChild(nameRow);\n';
   sc += '    if(e.email||e.phone){\n';
@@ -2086,7 +2087,7 @@ function genCombinedScript(emp) {
   sc += '    }\n';
   sc += '    if(e.apply_url){var abtn=document.createElement("a");abtn.href=e.apply_url;abtn.target="_blank";abtn.style.cssText="display:flex;align-items:center;justify-content:center;padding:15px 24px;border-radius:12px;background:"+accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 20px "+accentGlow;abtn.textContent="Apply With "+(e.first_name||"");leftCol.appendChild(abtn);}\n';
   sc += '    if(socialHtml){var socDiv=document.createElement("div");socDiv.innerHTML=socialHtml;leftCol.appendChild(socDiv);}\n';
-  sc += '    if(e.bio){var bioP=document.createElement("p");bioP.style.cssText="font-size:15.5px;line-height:1.85;color:"+textBio+";border-left:3px solid "+accentLight+";padding-left:14px;margin:0";bioP.textContent=e.bio;leftCol.appendChild(bioP);}\n';
+  sc += '    if(e.bio){var bioP=document.createElement("p");bioP.style.cssText="font-size:17px;line-height:1.9;font-weight:400;color:"+textBio+";border-left:3px solid "+accentLight+";padding-left:14px;margin:0";bioP.textContent=e.bio;leftCol.appendChild(bioP);}\n';
   sc += '    var rightCol=document.createElement("div");\n';
   sc += '    if(awards){\n';
   sc += '      var awH=document.createElement("h2");awH.style.cssText="font-size:26px;font-weight:900;color:"+textPrimary+";margin-bottom:20px";awH.textContent="Awards";rightCol.appendChild(awH);\n';
