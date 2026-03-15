@@ -1960,13 +1960,7 @@ function genCombinedScript(emp) {
   sc += '<div id="wyl-bio"></div>\n';
   sc += '<div id="wyl-team" style="display:none"></div>\n';
   sc += '<link href="https://fonts.googleapis.com/css2?family=Yellowtail&display=swap" rel="stylesheet">\n';
-  sc += '<style id="wyl-anim">';
-  sc += '@keyframes wspin{to{transform:rotate(360deg)}}';
-  sc += '.wyl-spin-ring{animation:wspin 4s linear infinite!important}';
-  sc += '.wyl-aw-row{animation:wyl-fadein 0.6s ease both}';
-  sc += '@keyframes wyl-fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}';
-  sc += '.wyl-aw-row:nth-child(1){animation-delay:.05s}.wyl-aw-row:nth-child(2){animation-delay:.12s}.wyl-aw-row:nth-child(3){animation-delay:.19s}.wyl-aw-row:nth-child(4){animation-delay:.26s}.wyl-aw-row:nth-child(5){animation-delay:.33s}';
-  sc += '</style>\n';
+
   sc += '<script>\n';
   sc += '(function(){\n';
   sc += '  var U="' + SUPABASE_URL + '",K="' + SUPABASE_KEY + '",S="' + slug + '",C="' + state.coId + '";\n';
@@ -2003,7 +1997,7 @@ function genCombinedScript(emp) {
   sc += '    var heroImg=e.hero_image_url||"";\n';
   sc += '    var fp={x:e.hero_focal_x!=null?e.hero_focal_x:(cfg.focalHero&&cfg.focalHero.x)||50,y:e.hero_focal_y!=null?e.hero_focal_y:(cfg.focalHero&&cfg.focalHero.y)||50};\n';
   sc += '    var bgCSS=heroImg?"background-image:url(\'"+heroImg+"\');background-size:cover;background-position:"+fp.x+"% "+fp.y+"%;background-attachment:fixed":"background:linear-gradient(135deg,"+gc+","+h2r(gc,0.8)+")";\n';
-  sc += '    var ovGrad="linear-gradient(to bottom,"+h2r(gc,0.7)+" 0%,"+h2r(gc,0.15)+" 35%,"+h2r(gc,0.85)+" 100%)";\n';
+  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,0.82)+" 0%,"+h2r(gc,0.60)+" 28%,"+h2r(gc,0.18)+" 52%,"+h2r(gc,0.0)+" 68%)"\n';
   sc += '    var hs=document.getElementById("wyl-hero-style");\n';
   sc += '    if(!hs){hs=document.createElement("style");hs.id="wyl-hero-style";document.head.appendChild(hs);}\n';
   sc += '    hs.textContent=\n';
@@ -2074,7 +2068,7 @@ function genCombinedScript(emp) {
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
   sc += '    var photoWrap=document.createElement("div");photoWrap.style.cssText="position:relative;flex-shrink:0;width:130px;height:130px";\n';
-  sc += '    var ring=document.createElement("div");ring.className="wyl-spin-ring";ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");z-index:0";\n';
+  sc += '    ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");z-index:0";(function(){var d=0;function sp(){d=(d+0.9)%360;ring.style.transform=\'rotate(\'+d+\'deg)\';requestAnimationFrame(sp);}sp();})();\n';
   sc += '    var ringInner=document.createElement("div");ringInner.style.cssText="position:absolute;inset:-1px;border-radius:50%;background:"+bg+";z-index:1";\n';
   sc += '    var photo=document.createElement("img");photo.src=e.photo_url||"";photo.style.cssText="position:relative;z-index:2;width:130px;height:130px;border-radius:50%;object-fit:cover;object-position:"+photoPos+";display:block";\n';
   sc += '    photo.onerror=function(){this.style.display="none";};\n';
@@ -2098,6 +2092,7 @@ function genCombinedScript(emp) {
   sc += '    if(awards){\n';
   sc += '      var awH=document.createElement("h2");awH.style.cssText="font-size:26px;font-weight:900;color:"+textPrimary+";margin-bottom:20px";awH.textContent="Awards";rightCol.appendChild(awH);\n';
   sc += '      var awList=document.createElement("div");awList.style.cssText="display:flex;flex-direction:column;gap:14px";awList.innerHTML=awards;rightCol.appendChild(awList);\n';
+  sc += '      awList.querySelectorAll(\'div\').forEach(function(row,i){row.style.cssText+=\'opacity:0;transform:translateY(10px);transition:opacity 0.5s ease \'+(i*0.1)+\'s,transform 0.5s ease \'+(i*0.1)+\'s\';setTimeout(function(){row.style.opacity=\'1\';row.style.transform=\'translateY(0)\';},50);});\n';
   sc += '    }\n';
   sc += '    content.appendChild(leftCol);content.appendChild(rightCol);bioEl.appendChild(content);\n';
   sc += '\n';
