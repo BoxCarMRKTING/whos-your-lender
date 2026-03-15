@@ -1854,7 +1854,7 @@ function genProfileScript(emp) {
     var tags=titles.map((t,i)=>'<span style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:4px 10px;'+(i===0?'color:#fff;background:'+co.accent+';border:1px solid '+co.accent:(i===1?'color:'+co.accent+';background:'+co.accent_light+';border:1px solid '+co.accent:'color:'+co.accent+';background:transparent;border:1px solid '+co.accent_light))+'">'+t+'</span>').join('');
     var awards=(e.employee_awards||[]).sort((a,b)=>a.sort_order-b.sort_order).map(function(a){
       var at=a.award_types||{},lbl=a.custom_title||at.name||'';
-      return '<div style="display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:14px;border:1px solid '+(at.row_border||'rgba(43,191,239,.25)')+';background:'+(at.row_bg||'rgba(43,191,239,.08)')+'"><div style="flex-shrink:0;width:64px;height:64px;display:flex;align-items:center;justify-content:center">'+(at.image_url?'<img src="'+at.image_url+'" style="width:60px;height:60px;object-fit:contain">':'')+'</div><div><div style="font-size:15px;font-weight:700;color:#1a2332">'+lbl+'</div><div style="font-size:12px;color:#6b7c93">'+(a.years||'')+'</div></div></div>';
+      return '<div class=\"wyl-aw-row\" style="display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:14px;border:1px solid '+(at.row_border||'rgba(43,191,239,.25)')+';background:'+(at.row_bg||'rgba(43,191,239,.08)')+'"><div style="flex-shrink:0;width:64px;height:64px;display:flex;align-items:center;justify-content:center">'+(at.image_url?'<img src="'+at.image_url+'" style="width:60px;height:60px;object-fit:contain">':'')+'</div><div><div style="font-size:15px;font-weight:700;color:#1a2332">'+lbl+'</div><div style="font-size:12px;color:#6b7c93">'+(a.years||'')+'</div></div></div>';
     }).join('');
 
     var ytHtml='';
@@ -1960,6 +1960,13 @@ function genCombinedScript(emp) {
   sc += '<div id="wyl-bio"></div>\n';
   sc += '<div id="wyl-team" style="display:none"></div>\n';
   sc += '<link href="https://fonts.googleapis.com/css2?family=Yellowtail&display=swap" rel="stylesheet">\n';
+  sc += '<style id="wyl-anim">';
+  sc += '@keyframes wspin{to{transform:rotate(360deg)}}';
+  sc += '.wyl-spin-ring{animation:wspin 4s linear infinite!important}';
+  sc += '.wyl-aw-row{animation:wyl-fadein 0.6s ease both}';
+  sc += '@keyframes wyl-fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}';
+  sc += '.wyl-aw-row:nth-child(1){animation-delay:.05s}.wyl-aw-row:nth-child(2){animation-delay:.12s}.wyl-aw-row:nth-child(3){animation-delay:.19s}.wyl-aw-row:nth-child(4){animation-delay:.26s}.wyl-aw-row:nth-child(5){animation-delay:.33s}';
+  sc += '</style>\n';
   sc += '<script>\n';
   sc += '(function(){\n';
   sc += '  var U="' + SUPABASE_URL + '",K="' + SUPABASE_KEY + '",S="' + slug + '",C="' + state.coId + '";\n';
@@ -2009,7 +2016,7 @@ function genCombinedScript(emp) {
   sc += '      "#wyl-tl{font-size:clamp(17px,2vw,20px);color:rgba(255,255,255,0.92);line-height:1.4;max-width:500px;text-shadow:0 1px 12px rgba(0,0,0,0.8);margin:0 0 28px;display:block}"+\n';
   sc += '      "#wyl-tl em{font-style:italic;font-weight:700;color:#fff}"+\n';
   sc += '      "#wyl-btn{display:inline-block;padding:17px 40px;border-radius:50px;background:"+co.accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 28px "+co.accent_glow+";white-space:nowrap}";\n';
-  sc += '    heroEl.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px 48px;min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
+  sc += '    heroEl.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px max(48px,calc((100vw - 1400px)/2 + 48px));min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
   sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";\n';
   sc += '    heroEl.appendChild(hov);\n';
   sc += '    var fn=document.createElement("div");fn.id="wyl-fn";fn.textContent=e.first_name||"";\n';
@@ -2061,7 +2068,7 @@ function genCombinedScript(emp) {
   sc += '    bioEl.appendChild(canvas);\n';
   sc += '    var spStyle=document.getElementById("wyl-spin-style");\n';
   sc += '    if(!spStyle){spStyle=document.createElement("style");spStyle.id="wyl-spin-style";document.head.appendChild(spStyle);}\n';
-  sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}.wyl-spin-ring{animation:wspin 4s linear infinite!important;}@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
+  sc += '    spStyle.textContent="@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
   sc += '    var content=document.createElement("div");\n';
   sc += '    content.id=\"wyl-bio-content\";content.style.cssText=\"position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto\";\n';
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
