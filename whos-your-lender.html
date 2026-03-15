@@ -2056,8 +2056,8 @@ function genCombinedScript(emp) {
   sc += '    bioEl.appendChild(canvas);\n';
   sc += '    var spStyle=document.getElementById("wyl-spin-style");\n';
   sc += '    if(!spStyle){spStyle=document.createElement("style");spStyle.id="wyl-spin-style";document.head.appendChild(spStyle);}\n';
-  sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}";\n';
-  sc += '    var content=document.createElement("div");\n';
+  sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\
+';  sc += '    var content=document.createElement("div");\n';
   sc += '    content.id="wyl-bio-content";content.style.cssText="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto";\n';
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
@@ -2106,7 +2106,7 @@ function genCombinedScript(emp) {
   sc += '      var CL=' + JSON.stringify(_lc) + ';\n';
   sc += '      var CD=' + JSON.stringify(_dc) + ';\n';
   sc += '      var COLORS=isDark?CD:CL;\n';
-  sc += '      var N=20,R=36,RV=0,circles=[],mouse={x:-9999,y:-9999};\n';
+  sc += '      var N=18,R=55,RV=0,circles=[],mouse={x:-9999,y:-9999};\n';
   sc += '      var REPEL=150,REPELF=10,FRIC=0.985,MAXV=7;\n';
   sc += '      for(var i=0;i<N;i++){var r=R+(Math.random()-0.5)*RV*2;circles.push({x:r+Math.random()*(W-r*2),y:r+Math.random()*(H-r*2),vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,r:r,c:COLORS[i%COLORS.length]});}\n';
   sc += '      for(var k=0;k<40;k++)for(var i=0;i<circles.length;i++)for(var j=i+1;j<circles.length;j++){var a=circles[i],b=circles[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||0.001,mn=a.r+b.r;if(d<mn){var ov=(mn-d)*0.5,nx=dx/d,ny=dy/d;a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;}}\n';
@@ -2127,7 +2127,7 @@ function genCombinedScript(emp) {
   sc += '          if(d<mn&&d>0){var ov=mn-d,nx=dx/d,ny=dy/d;a.x-=nx*ov*0.5;a.y-=ny*ov*0.5;b.x+=nx*ov*0.5;b.y+=ny*ov*0.5;\n';
   sc += '            var dvx=a.vx-b.vx,dvy=a.vy-b.vy,dot=dvx*nx+dvy*ny;\n';
   sc += '            if(dot<0){a.vx-=dot*nx;a.vy-=dot*ny;b.vx+=dot*nx;b.vy+=dot*ny;}}}\n';
-  sc += '        for(var i=0;i<circles.length;i++){var c=circles[i];ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=c.c.f;ctx.strokeStyle=c.c.s;ctx.lineWidth=2;ctx.fill();ctx.stroke();}\n';
+  sc += '        for(var i=0;i<circles.length;i++){var c=circles[i];ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=c.c.f;ctx.strokeStyle=c.c.s;ctx.lineWidth=3;ctx.fill();ctx.stroke();}\n';
   sc += '        requestAnimationFrame(tick);\n';
   sc += '      }\n';
   sc += '      tick();\n';
@@ -2785,8 +2785,8 @@ function renderCode(panel) {
   if (!emp) { state.view='list'; renderMain(); return; }
   const awards = state.currentAwards || [];
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
-  const code = state.codeTab==='hero' ? genHeroScript(emp) : state.codeTab==='team' ? genTeamScript(emp) : genCombinedScript(emp);
-  const codeLabel = state.codeTab==='hero' ? 'Hero Script Tag' : state.codeTab==='team' ? 'Team Script Tag' : 'Hero + Bio Script Tag';
+  const code = state.codeTab==='team' ? genTeamScript(emp) : genCombinedScript(emp);
+  const codeLabel = state.codeTab==='team' ? 'Team Script Tag' : 'Hero + Bio Script Tag';
 
   panel.innerHTML = `
     <button class="back-btn" data-action="back" style="margin-bottom:14px">← All Agents</button>
@@ -2804,7 +2804,7 @@ function renderCode(panel) {
       <span><strong style="color:rgba(220,235,255,0.9)">Live sync active.</strong> Paste once — every Save updates Squarespace instantly. No re-pasting ever.</span>
     </div>
     <div class="code-tabs">
-      <button class="code-tab ${state.codeTab==='hero'?'active':''}" data-action="codetab" data-val="hero">🎯 Hero Script</button>
+
       <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Hero + Bio Script</button>
       <button class="code-tab ${state.codeTab==='team'?'active':''}" data-action="codetab" data-val="team">👥 Team Script</button>
     </div>
