@@ -1803,7 +1803,7 @@ async function deleteAT(id) {
     // hex to rgba helper
     function h2r(h,a){h=h.replace("#","");if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return"rgba("+r+","+g+","+b+","+a+")";}
     var bgCSS=heroImg?"background-image:url('"+heroImg+"');background-size:cover;background-position:center;background-attachment:fixed":"background:linear-gradient(135deg,"+gc+","+h2r(gc,0.7)+")";
-    var ovGrad="linear-gradient(to bottom,"+h2r(gc,0.7)+" 0%,"+h2r(gc,0.15)+" 35%,"+h2r(gc,0.85)+" 100%)";
+    var ovGrad="linear-gradient(135deg,"+h2r(gc,0.72)+" 0%,"+h2r(gc,0.35)+" 30%,"+h2r(gc,0.0)+" 55%)";
     heroStyle.textContent=
       ".sqs-block-code:has(#wyl-hero),.sqs-col-wrapfix:has(#wyl-hero),[data-block-type='code']:has(#wyl-hero){padding:0!important;margin:0!important;width:100%!important}"+
       ".page-section:has(#wyl-hero),.Index-page-content:has(#wyl-hero),[data-section-id]:has(#wyl-hero){"+bgCSS+"!important;padding:0!important}"+
@@ -1955,7 +1955,7 @@ function genCombinedScript(emp) {
 
   const L = (s) => s; // passthrough helper for readability
   let sc = '';
-  sc += '<!-- WYL Profile: ' + emp.first_name + ' ' + emp.last_name + ' - paste once, auto-updates forever -->\n';
+  sc += '<!-- WYL Profile v2.1: ' + emp.first_name + ' ' + emp.last_name + ' -->\n';
   sc += '<div id="wyl-hero" style="min-height:100vh;background:' + gradColor + '"></div>\n';
   sc += '<div id="wyl-bio"></div>\n';
   sc += '<div id="wyl-team" style="display:none"></div>\n';
