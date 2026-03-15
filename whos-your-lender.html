@@ -1931,7 +1931,7 @@ function genProfileScript(emp) {
 <\/script>`;
 }
 
-// ── Combined Hero + Bio Script ────────────────────────────
+// ── Combined Profile Script ────────────────────────────
 function genCombinedScript(emp) {
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
   const logoUrl = state.formData.hero_logo_url || '';
@@ -1955,7 +1955,7 @@ function genCombinedScript(emp) {
 
   const L = (s) => s; // passthrough helper for readability
   let sc = '';
-  sc += '<!-- WYL Hero+Bio: ' + emp.first_name + ' ' + emp.last_name + ' - paste once, auto-updates forever -->\n';
+  sc += '<!-- WYL Profile: ' + emp.first_name + ' ' + emp.last_name + ' - paste once, auto-updates forever -->\n';
   sc += '<div id="wyl-hero" style="min-height:100vh;background:' + gradColor + '"></div>\n';
   sc += '<div id="wyl-bio"></div>\n';
   sc += '<div id="wyl-team" style="display:none"></div>\n';
@@ -2958,7 +2958,7 @@ function renderCode(panel) {
   const awards = state.currentAwards || [];
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
   const code = genCombinedScript(emp);
-  const codeLabel = 'Hero + Bio + Team Script';
+  const codeLabel = 'Profile Script';
 
   panel.innerHTML = `
     <button class="back-btn" data-action="back" style="margin-bottom:14px">← All Agents</button>
@@ -2976,7 +2976,7 @@ function renderCode(panel) {
       <span><strong style="color:rgba(220,235,255,0.9)">Live sync active.</strong> Paste once — every Save updates Squarespace instantly. No re-pasting ever.</span>
     </div>
     <div class="code-tabs">
-      <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Hero + Bio Script</button>
+      <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Profile Script</button>
     </div>
     <div style="padding:9px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:11px;color:rgba(200,220,240,0.28);margin-bottom:10px;line-height:1.6">
       <strong style="color:rgba(200,220,240,0.55)">Paste once</strong> into a Squarespace Code Block. Done forever.
