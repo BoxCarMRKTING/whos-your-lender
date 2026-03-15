@@ -1768,9 +1768,14 @@ async function deleteAT(id) {
   const logoFilter = logoMode === 'dark' ? 'brightness(0)' : logoMode === 'light' ? 'brightness(0) invert(1)' : '';
   const showLogo = logoUrl && logoMode !== 'none';
   const gradColor = state.formData.hero_gradient_color || (state.coId === 'highland' ? '#0d1f2d' : '#1a0808');
-  // overlayStrength: 0=transparent 1=full, based on gradient_color lightness
+  // Preamble h2r for computing gradient strings
+  const _ph2r = (h,a) => { h=h.replace('#',''); if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return 'rgba('+r+','+g+','+b+','+a.toFixed(2)+')'; };
   const _hexToL = h => { h=h.replace('#',''); const r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255; return 0.299*r+0.587*g+0.114*b; };
   const overlayStr = state.formData.hero_gradient_color ? Math.min(1, Math.max(0.3, 1 - _hexToL(gradColor)*1.5)) : 0.82;
+  const gc_pre = gradColor;
+  const ovGrad_pre = 'linear-gradient(to right,'+_ph2r(gc_pre,overlayStr)+' 0%,'+_ph2r(gc_pre,overlayStr*0.68)+' 28%,'+_ph2r(gc_pre,overlayStr*0.19)+' 50%,'+_ph2r(gc_pre,0)+' 66%)';
+  const ovTop_pre  = 'linear-gradient(to bottom,'+_ph2r(gc_pre,overlayStr*0.68)+' 0%,'+_ph2r(gc_pre,0)+' 18%)';
+  const ovBot_pre  = 'linear-gradient(to top,'+_ph2r(gc_pre,overlayStr*0.74)+' 0%,'+_ph2r(gc_pre,0)+' 22%)';
 
   return `<!-- WYL Hero: ${emp.first_name} ${emp.last_name} — paste once, auto-updates forever -->
 <div id="wyl-hero"></div>
@@ -1956,6 +1961,13 @@ function genCombinedScript(emp) {
   const focalPhoto = { x: state.formData.photo_focal_x||50, y: state.formData.photo_focal_y||50 };
   const cfg = JSON.stringify({ dark: bioDark, shape: bioShape, darkBg, darkAccent, social: socialLinks, focalHero, focalPhoto });
 
+  // Preamble gradient computation (baked into generated script as static strings)
+  const _ph2r = (h,a) => { h=h.replace('#',''); if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; const rv=parseInt(h.slice(0,2),16),gv=parseInt(h.slice(2,4),16),bv=parseInt(h.slice(4,6),16); return 'rgba('+rv+','+gv+','+bv+','+a.toFixed(3)+')'; };
+  const _hexToL = h => { h=h.replace('#',''); const rv=parseInt(h.slice(0,2),16)/255,gv=parseInt(h.slice(2,4),16)/255,bv=parseInt(h.slice(4,6),16)/255; return 0.299*rv+0.587*gv+0.114*bv; };
+  const overlayStr = state.formData.hero_gradient_color ? Math.min(1,Math.max(0.3,1-_hexToL(gradColor)*1.5)) : 0.82;
+  const ovGrad_pre = 'linear-gradient(to right,'+_ph2r(gradColor,overlayStr)+' 0%,'+_ph2r(gradColor,+(overlayStr*0.68).toFixed(3))+' 28%,'+_ph2r(gradColor,+(overlayStr*0.19).toFixed(3))+' 50%,'+_ph2r(gradColor,0)+' 66%)';
+  const ovTop_pre  = 'linear-gradient(to bottom,'+_ph2r(gradColor,+(overlayStr*0.68).toFixed(3))+' 0%,'+_ph2r(gradColor,0)+' 18%)';
+  const ovBot_pre  = 'linear-gradient(to top,'+_ph2r(gradColor,+(overlayStr*0.74).toFixed(3))+' 0%,'+_ph2r(gradColor,0)+' 22%)';
   const L = (s) => s; // passthrough helper for readability
   let sc = '';
   sc += '<!-- WYL Profile v2.1: ' + emp.first_name + ' ' + emp.last_name + ' -->\n';
@@ -2000,7 +2012,8 @@ function genCombinedScript(emp) {
   sc += '    var heroImg=e.hero_image_url||"";\n';
   sc += '    var fp={x:e.hero_focal_x!=null?e.hero_focal_x:(cfg.focalHero&&cfg.focalHero.x)||50,y:e.hero_focal_y!=null?e.hero_focal_y:(cfg.focalHero&&cfg.focalHero.y)||50};\n';
   sc += '    var bgCSS=heroImg?"background-image:url(\'"+heroImg+"\');background-size:cover;background-position:"+fp.x+"% "+fp.y+"%;background-attachment:fixed":"background:linear-gradient(135deg,"+gc+","+h2r(gc,0.8)+")";\n';
-  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,overlayStr)+" 0%,"+h2r(gc,overlayStr*0.68)+" 28%,"+h2r(gc,overlayStr*0.19)+" 50%,"+h2r(gc,0.0)+" 66%)";var ovTop="linear-gradient(to bottom,"+h2r(gc,overlayStr*0.68)+" 0%,"+h2r(gc,0.0)+" 18%)";var ovBot="linear-gradient(to top,"+h2r(gc,overlayStr*0.74)+" 0%,"+h2r(gc,0.0)+" 22%)"\n';
+  sc += '    var ovGrad="' + ovGrad_pre + '";\n';
+
   sc += '    var hs=document.getElementById("wyl-hero-style");\n';
   sc += '    if(!hs){hs=document.createElement("style");hs.id="wyl-hero-style";document.head.appendChild(hs);}\n';
   sc += '    hs.textContent=\n';
@@ -2014,7 +2027,8 @@ function genCombinedScript(emp) {
   sc += '      "#wyl-tl em{font-style:italic;font-weight:700;color:#fff}"+\n';
   sc += '      "#wyl-btn{display:inline-block;padding:17px 40px;border-radius:50px;background:"+co.accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 28px "+co.accent_glow+";white-space:nowrap}";\n';
   sc += '    heroEl.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px max(48px,calc((100vw - 1400px)/2 + 48px));min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
-  sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";var hovTop=document.createElement("div");hovTop.style.cssText="position:absolute;inset:0;background:"+ovTop+";z-index:0;pointer-events:none";var hovBot=document.createElement("div");hovBot.style.cssText="position:absolute;inset:0;background:"+ovBot+";z-index:0;pointer-events:none";\n';
+  sc += '    var ovTop="' + ovTop_pre + '";var ovBot="' + ovBot_pre + '";\n';
+  sc += '    var hovTop=document.createElement("div");hovTop.style.cssText="position:absolute;inset:0;background:"+ovTop+";z-index:0;pointer-events:none";var hovBot=document.createElement("div");hovBot.style.cssText="position:absolute;inset:0;background:"+ovBot+";z-index:0;pointer-events:none";\n';
   sc += '    heroEl.appendChild(hov);heroEl.appendChild(hovTop);heroEl.appendChild(hovBot);\n';
   sc += '    var fn=document.createElement("div");fn.id="wyl-fn";fn.textContent=e.first_name||"";\n';
   sc += '    var ln=document.createElement("div");ln.id="wyl-ln";ln.textContent=e.last_name||"";\n';
@@ -2879,10 +2893,14 @@ function renderForm(panel) {
       </div>
       <div class="field-wrap"><label class="field-label">YouTube URL <span style="font-size:10px;opacity:0.5">(optional)</span></label><input class="fi" value="${f.youtube_url||''}" oninput="setF('youtube_url',this.value)" placeholder="https://youtube.com/watch?v=..."></div>
       <label class="field-label" style="margin-bottom:8px;margin-top:14px">Background Style</label>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-          ${[["rings","⭕","Rings"],["stars","⭐","Stars"],["zigzag","≋","Zigzag"],["waves","〜","Waves"]].map(([val,icon,lbl])=>`
-          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}"><div style="font-size:18px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join("")}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+          ${[["rings","⬤","Shapes"],["waves","〜","Waves"]].map(([val,icon,lbl])=>`
+          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:10px 4px;border-radius:8px;font-size:11px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val||((f.bio_shape||'rings')!=='waves'&&val==='rings')?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}"><div style="font-size:20px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join("")}
         </div>
+        ${(f.bio_shape||'rings')!=='waves'?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          ${[["rings","⭕","Rings"],["stars","⭐","Stars"],["zigzag","≋","Zigzag"]].map(([val,icon,lbl])=>`
+          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}"><div style="font-size:18px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join("")}
+        </div>`:''}
       </div>
       <div class="field-wrap"><label class="field-label">Agent Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>
       <div class="sec-div"></div>
