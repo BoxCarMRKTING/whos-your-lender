@@ -2068,7 +2068,9 @@ function genCombinedScript(emp) {
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
   sc += '    var photoWrap=document.createElement("div");photoWrap.style.cssText="position:relative;flex-shrink:0;width:130px;height:130px";\n';
-  sc += '    ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");z-index:0";(function(){var d=0;function sp(){d=(d+0.9)%360;ring.style.transform=\'rotate(\'+d+\'deg)\';requestAnimationFrame(sp);}sp();})();\n';
+  sc += '    var ring=document.createElement("div");\n';
+  sc += '    ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");z-index:0";\n';
+  sc += '    var _rd=0;function _rs(){_rd=(_rd+0.9)%360;ring.style.transform="rotate("+_rd+"deg)";requestAnimationFrame(_rs);}requestAnimationFrame(_rs);\n';
   sc += '    var ringInner=document.createElement("div");ringInner.style.cssText="position:absolute;inset:-1px;border-radius:50%;background:"+bg+";z-index:1";\n';
   sc += '    var photo=document.createElement("img");photo.src=e.photo_url||"";photo.style.cssText="position:relative;z-index:2;width:130px;height:130px;border-radius:50%;object-fit:cover;object-position:"+photoPos+";display:block";\n';
   sc += '    photo.onerror=function(){this.style.display="none";};\n';
