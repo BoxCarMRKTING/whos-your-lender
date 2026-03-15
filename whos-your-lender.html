@@ -1155,7 +1155,7 @@ function openCrop(src) {
     updateCropPreview();
   };
   img.crossOrigin='anonymous';
-  if(src&&src.startsWith('http')){fetch(src,{mode:'cors',cache:'no-store'}).then(function(r){return r.blob();}).then(function(b){img.src=URL.createObjectURL(b);}).catch(function(){img.src=src;});}else{img.src=src;}
+  img.src=src.includes('supabase.co')?(src+(src.includes('?')?'&':'?')+'t='+Date.now()):src;
   if(img.complete&&img.naturalWidth)img.onload();
 
   // Sliders
@@ -1768,6 +1768,9 @@ async function deleteAT(id) {
   const logoFilter = logoMode === 'dark' ? 'brightness(0)' : logoMode === 'light' ? 'brightness(0) invert(1)' : '';
   const showLogo = logoUrl && logoMode !== 'none';
   const gradColor = state.formData.hero_gradient_color || (state.coId === 'highland' ? '#0d1f2d' : '#1a0808');
+  // overlayStrength: 0=transparent 1=full, based on gradient_color lightness
+  const _hexToL = h => { h=h.replace('#',''); const r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255; return 0.299*r+0.587*g+0.114*b; };
+  const overlayStr = state.formData.hero_gradient_color ? Math.min(1, Math.max(0.3, 1 - _hexToL(gradColor)*1.5)) : 0.82;
 
   return `<!-- WYL Hero: ${emp.first_name} ${emp.last_name} — paste once, auto-updates forever -->
 <div id="wyl-hero"></div>
@@ -1997,7 +2000,7 @@ function genCombinedScript(emp) {
   sc += '    var heroImg=e.hero_image_url||"";\n';
   sc += '    var fp={x:e.hero_focal_x!=null?e.hero_focal_x:(cfg.focalHero&&cfg.focalHero.x)||50,y:e.hero_focal_y!=null?e.hero_focal_y:(cfg.focalHero&&cfg.focalHero.y)||50};\n';
   sc += '    var bgCSS=heroImg?"background-image:url(\'"+heroImg+"\');background-size:cover;background-position:"+fp.x+"% "+fp.y+"%;background-attachment:fixed":"background:linear-gradient(135deg,"+gc+","+h2r(gc,0.8)+")";\n';
-  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,0.80)+" 0%,"+h2r(gc,0.55)+" 28%,"+h2r(gc,0.15)+" 50%,"+h2r(gc,0.0)+" 66%)";var ovTop="linear-gradient(to bottom,"+h2r(gc,0.55)+" 0%,"+h2r(gc,0.0)+" 18%)"\n';
+  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,overlayStr)+" 0%,"+h2r(gc,overlayStr*0.68)+" 28%,"+h2r(gc,overlayStr*0.19)+" 50%,"+h2r(gc,0.0)+" 66%)";var ovTop="linear-gradient(to bottom,"+h2r(gc,overlayStr*0.68)+" 0%,"+h2r(gc,0.0)+" 18%)";var ovBot="linear-gradient(to top,"+h2r(gc,overlayStr*0.74)+" 0%,"+h2r(gc,0.0)+" 22%)"\n';
   sc += '    var hs=document.getElementById("wyl-hero-style");\n';
   sc += '    if(!hs){hs=document.createElement("style");hs.id="wyl-hero-style";document.head.appendChild(hs);}\n';
   sc += '    hs.textContent=\n';
@@ -2011,8 +2014,8 @@ function genCombinedScript(emp) {
   sc += '      "#wyl-tl em{font-style:italic;font-weight:700;color:#fff}"+\n';
   sc += '      "#wyl-btn{display:inline-block;padding:17px 40px;border-radius:50px;background:"+co.accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 28px "+co.accent_glow+";white-space:nowrap}";\n';
   sc += '    heroEl.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px max(48px,calc((100vw - 1400px)/2 + 48px));min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
-  sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";var hovTop=document.createElement("div");hovTop.style.cssText="position:absolute;inset:0;background:"+ovTop+";z-index:0;pointer-events:none";\n';
-  sc += '    heroEl.appendChild(hov);heroEl.appendChild(hovTop);\n';
+  sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";var hovTop=document.createElement("div");hovTop.style.cssText="position:absolute;inset:0;background:"+ovTop+";z-index:0;pointer-events:none";var hovBot=document.createElement("div");hovBot.style.cssText="position:absolute;inset:0;background:"+ovBot+";z-index:0;pointer-events:none";\n';
+  sc += '    heroEl.appendChild(hov);heroEl.appendChild(hovTop);heroEl.appendChild(hovBot);\n';
   sc += '    var fn=document.createElement("div");fn.id="wyl-fn";fn.textContent=e.first_name||"";\n';
   sc += '    var ln=document.createElement("div");ln.id="wyl-ln";ln.textContent=e.last_name||"";\n';
   sc += '    var nw=document.createElement("div");nw.style.cssText="margin-bottom:16px;position:relative;z-index:1";nw.appendChild(fn);nw.appendChild(ln);\n';
@@ -2074,7 +2077,7 @@ function genCombinedScript(emp) {
   sc += '    var ringInner=document.createElement("div");ringInner.style.cssText="position:absolute;inset:-1px;border-radius:50%;background:"+bg+";z-index:1";\n';
   sc += '    var photo=document.createElement("img");photo.src=e.photo_url||"";photo.style.cssText="position:relative;z-index:2;width:130px;height:130px;border-radius:50%;object-fit:cover;object-position:"+photoPos+";display:block";\n';
   sc += '    photo.onerror=function(){this.style.display="none";};\n';
-  sc += '    photoWrap.appendChild(ring);photoWrap.appendChild(ringInner);photoWrap.appendChild(photo);\n';
+  sc += '    photoWrap.appendChild(ring);photoWrap.appendChild(ringInner);photoWrap.appendChild(photo);;(function(){var shine=document.createElement("div");shine.style.cssText="position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.85);z-index:3;pointer-events:none;box-shadow:0 0 8px 3px rgba(255,255,255,0.6)";photoWrap.appendChild(shine);var sa=0;function spinShine(){sa+=0.9;var rad=sa*Math.PI/180;var cx=69,cy=69,r=69;shine.style.left=(cx+r*Math.cos(rad)-6)+"px";shine.style.top=(cy+r*Math.sin(rad)-6)+"px";requestAnimationFrame(spinShine);}spinShine();})()\n';
   sc += '    var nameInfo=document.createElement("div");nameInfo.style.cssText="padding-top:8px";\n';
   sc += '    var fnDiv=document.createElement("div");fnDiv.style.cssText="font-size:48px;font-weight:900;color:"+textPrimary+";line-height:1;letter-spacing:-1px";fnDiv.textContent=e.first_name||"";\n';
   sc += '    var lnDiv=document.createElement("div");lnDiv.style.cssText="font-family:Yellowtail,cursive;font-size:54px;color:"+accent+";line-height:1.1";lnDiv.textContent=e.last_name||"";\n';
@@ -2093,8 +2096,8 @@ function genCombinedScript(emp) {
   sc += '    var rightCol=document.createElement("div");\n';
   sc += '    if(awards){\n';
   sc += '      var awH=document.createElement("h2");awH.style.cssText="font-size:26px;font-weight:900;color:"+textPrimary+";margin-bottom:20px";awH.textContent="Awards";rightCol.appendChild(awH);\n';
-  sc += '      var awList=document.createElement("div");awList.style.cssText="display:flex;flex-direction:column;gap:14px";awList.innerHTML=awards;rightCol.appendChild(awList);\n';
-  sc += '      awList.querySelectorAll(\'div\').forEach(function(row,i){row.style.cssText+=\'opacity:0;transform:translateY(10px);transition:opacity 0.5s ease \'+(i*0.1)+\'s,transform 0.5s ease \'+(i*0.1)+\'s\';setTimeout(function(){row.style.opacity=\'1\';row.style.transform=\'translateY(0)\';},50);});\n';
+  sc += '      var awList=document.createElement("div");awList.style.cssText="display:flex;flex-direction:column;gap:14px";awList.innerHTML=awards;rightCol.appendChild(awList);;(function(){var rows=awList.querySelectorAll("div");var N=rows.length;if(!N)return;rows.forEach(function(r){r.style.transition="opacity 0.4s ease, transform 0.4s ease";});var idx=0;function wave(){rows.forEach(function(r,i){var phase=((i-idx+N)%N)/N;var y=Math.sin(phase*Math.PI*2)*8;var op=0.55+0.45*Math.cos(phase*Math.PI*2);r.style.transform="translateY("+y+"px)";r.style.opacity=op;});idx=(idx+1)%N;setTimeout(wave,180);}wave();})()\n';
+  
   sc += '    }\n';
   sc += '    content.appendChild(leftCol);content.appendChild(rightCol);bioEl.appendChild(content);\n';
   sc += '\n';
@@ -2757,7 +2760,7 @@ function renderForm(panel) {
         <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px">
           <div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${state.coId==='highland'?'Highland':'Valor'} Logos</div>
           <div style="display:flex;flex-wrap:wrap;gap:8px">
-            ${(LOGOS[state.coId]||[]).map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
+            ${[...(LOGOS[state.coId]||[]),...(state.teamLogos||[])].map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
           </div>
           ${(()=>{const mt=state.teams.filter(t=>state.formTeams.includes(t.id));if(!mt.length)return '';const tl=state.teamLogos.filter(l=>mt.some(t=>String(l.team_id)===String(t.id)));if(!tl.length)return `<div style="font-size:10px;color:rgba(200,220,240,0.25)">${mt.map(t=>t.name).join(', ')} — no logos yet. Edit team in Settings.</div>`;return `<div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${mt.length===1?mt[0].name+' Logos':'Team Logos'}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tl.map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border .15s"><img src="${l.url}" style="height:22px;max-width:70px;object-fit:contain;pointer-events:none" onerror="this.style.display='none'"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label||'Logo'}</span></div>`).join('')}</div>`})()}
           <div style="display:flex;gap:6px">
