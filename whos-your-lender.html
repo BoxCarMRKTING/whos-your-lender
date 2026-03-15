@@ -2950,8 +2950,8 @@ function renderCode(panel) {
   if (!emp) { state.view='list'; renderMain(); return; }
   const awards = state.currentAwards || [];
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
-  const code = state.codeTab==='team' ? genTeamScript(emp) : genCombinedScript(emp);
-  const codeLabel = state.codeTab==='team' ? 'Team Script Tag' : 'Hero + Bio Script Tag';
+  const code = genCombinedScript(emp);
+  const codeLabel = 'Hero + Bio + Team Script';
 
   panel.innerHTML = `
     <button class="back-btn" data-action="back" style="margin-bottom:14px">← All Agents</button>
@@ -2970,7 +2970,6 @@ function renderCode(panel) {
     </div>
     <div class="code-tabs">
       <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Hero + Bio Script</button>
-      <button class="code-tab ${state.codeTab==='team'?'active':''}" data-action="codetab" data-val="team">👥 Team Script</button>
     </div>
     <div style="padding:9px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:11px;color:rgba(200,220,240,0.28);margin-bottom:10px;line-height:1.6">
       <strong style="color:rgba(200,220,240,0.55)">Paste once</strong> into a Squarespace Code Block. Done forever.
