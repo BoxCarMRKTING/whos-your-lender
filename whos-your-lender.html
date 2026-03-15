@@ -1997,7 +1997,7 @@ function genCombinedScript(emp) {
   sc += '    var heroImg=e.hero_image_url||"";\n';
   sc += '    var fp={x:e.hero_focal_x!=null?e.hero_focal_x:(cfg.focalHero&&cfg.focalHero.x)||50,y:e.hero_focal_y!=null?e.hero_focal_y:(cfg.focalHero&&cfg.focalHero.y)||50};\n';
   sc += '    var bgCSS=heroImg?"background-image:url(\'"+heroImg+"\');background-size:cover;background-position:"+fp.x+"% "+fp.y+"%;background-attachment:fixed":"background:linear-gradient(135deg,"+gc+","+h2r(gc,0.8)+")";\n';
-  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,0.82)+" 0%,"+h2r(gc,0.60)+" 28%,"+h2r(gc,0.18)+" 52%,"+h2r(gc,0.0)+" 68%)"\n';
+  sc += '    var ovGrad="linear-gradient(to right,"+h2r(gc,0.80)+" 0%,"+h2r(gc,0.55)+" 28%,"+h2r(gc,0.15)+" 50%,"+h2r(gc,0.0)+" 66%)";var ovTop="linear-gradient(to bottom,"+h2r(gc,0.55)+" 0%,"+h2r(gc,0.0)+" 18%)"\n';
   sc += '    var hs=document.getElementById("wyl-hero-style");\n';
   sc += '    if(!hs){hs=document.createElement("style");hs.id="wyl-hero-style";document.head.appendChild(hs);}\n';
   sc += '    hs.textContent=\n';
@@ -2011,8 +2011,8 @@ function genCombinedScript(emp) {
   sc += '      "#wyl-tl em{font-style:italic;font-weight:700;color:#fff}"+\n';
   sc += '      "#wyl-btn{display:inline-block;padding:17px 40px;border-radius:50px;background:"+co.accent+";color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 28px "+co.accent_glow+";white-space:nowrap}";\n';
   sc += '    heroEl.style.cssText=bgCSS+";display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:80px max(48px,calc((100vw - 1400px)/2 + 48px));min-height:100vh;position:relative;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
-  sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";\n';
-  sc += '    heroEl.appendChild(hov);\n';
+  sc += '    var hov=document.createElement("div");hov.style.cssText="position:absolute;inset:0;background:"+ovGrad+";z-index:0;pointer-events:none";var hovTop=document.createElement("div");hovTop.style.cssText="position:absolute;inset:0;background:"+ovTop+";z-index:0;pointer-events:none";\n';
+  sc += '    heroEl.appendChild(hov);heroEl.appendChild(hovTop);\n';
   sc += '    var fn=document.createElement("div");fn.id="wyl-fn";fn.textContent=e.first_name||"";\n';
   sc += '    var ln=document.createElement("div");ln.id="wyl-ln";ln.textContent=e.last_name||"";\n';
   sc += '    var nw=document.createElement("div");nw.style.cssText="margin-bottom:16px;position:relative;z-index:1";nw.appendChild(fn);nw.appendChild(ln);\n';
@@ -2064,7 +2064,7 @@ function genCombinedScript(emp) {
   sc += '    if(!spStyle){spStyle=document.createElement("style");spStyle.id="wyl-spin-style";document.head.appendChild(spStyle);}\n';
   sc += '    spStyle.textContent="@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
   sc += '    var content=document.createElement("div");\n';
-  sc += '    content.id=\"wyl-bio-content\";content.style.cssText=\"position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto\";\n';
+  sc += '    content.id="wyl-bio-content";content.style.cssText="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto";\n';
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
   sc += '    var photoWrap=document.createElement("div");photoWrap.style.cssText="position:relative;flex-shrink:0;width:130px;height:130px";\n';
