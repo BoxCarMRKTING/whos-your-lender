@@ -2061,13 +2061,13 @@ function genCombinedScript(emp) {
   sc += '    bioEl.appendChild(canvas);\n';
   sc += '    var spStyle=document.getElementById("wyl-spin-style");\n';
   sc += '    if(!spStyle){spStyle=document.createElement("style");spStyle.id="wyl-spin-style";document.head.appendChild(spStyle);}\n';
-  sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
+  sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}.wyl-spin-ring{animation:wspin 4s linear infinite!important;}@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
   sc += '    var content=document.createElement("div");\n';
   sc += '    content.id=\"wyl-bio-content\";content.style.cssText=\"position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto\";\n';
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
   sc += '    var photoWrap=document.createElement("div");photoWrap.style.cssText="position:relative;flex-shrink:0;width:130px;height:130px";\n';
-  sc += '    var ring=document.createElement("div");ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");animation:wspin 4s linear infinite;z-index:0";\n';
+  sc += '    var ring=document.createElement("div");ring.className="wyl-spin-ring";ring.style.cssText="position:absolute;inset:-4px;border-radius:50%;background:conic-gradient("+accent+",rgba(255,255,255,0.1),"+accent+");z-index:0";\n';
   sc += '    var ringInner=document.createElement("div");ringInner.style.cssText="position:absolute;inset:-1px;border-radius:50%;background:"+bg+";z-index:1";\n';
   sc += '    var photo=document.createElement("img");photo.src=e.photo_url||"";photo.style.cssText="position:relative;z-index:2;width:130px;height:130px;border-radius:50%;object-fit:cover;object-position:"+photoPos+";display:block";\n';
   sc += '    photo.onerror=function(){this.style.display="none";};\n';
