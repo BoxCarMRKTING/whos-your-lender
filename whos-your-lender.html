@@ -1966,7 +1966,7 @@ function genCombinedScript(emp) {
   sc += '  if(!heroEl||!bioEl)return;\n';
   sc += '  function apiFetch(url){return fetch(url,{headers:{"apikey":K,"Authorization":"Bearer "+K}}).then(function(r){return r.json();});}\n';
   sc += '  Promise.all([\n';
-  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,employee_awards(*,award_types(*))"),\n';
+  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,bio_dark_mode,photo_focal_x,photo_focal_y,hero_focal_x,hero_focal_y,instagram_url,linkedin_url,facebook_url,twitter_url,employee_awards(*,award_types(*))"),\n';
   sc += '    apiFetch(U+"/rest/v1/companies?id=eq."+C+"&select=*"),\n';
   sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&select=id").then(function(r){\n';
   sc += '      var eid=r[0]&&r[0].id;\n';
@@ -2099,14 +2099,14 @@ function genCombinedScript(emp) {
     : [{f:'rgba(56,189,248,0.00)',s:'rgba(56,189,248,0.15)'},{f:'rgba(125,211,252,0.00)',s:'rgba(125,211,252,0.12)'}];
   sc += '    // Bumper-car circle physics\n';
   sc += '    function initPhysics(){\n';
-  sc += '      var W=bioEl.offsetWidth,H=bioEl.offsetHeight;\n';
+  sc += '      var rect=canvas.getBoundingClientRect(),W=rect.width||bioEl.offsetWidth,H=rect.height||bioEl.offsetHeight;\n';
   sc += '      if(!W||!H){setTimeout(initPhysics,100);return;}\n';
   sc += '      canvas.width=W;canvas.height=H;\n';
   sc += '      var ctx=canvas.getContext("2d");\n';
   sc += '      var CL=' + JSON.stringify(_lc) + ';\n';
   sc += '      var CD=' + JSON.stringify(_dc) + ';\n';
   sc += '      var COLORS=isDark?CD:CL;\n';
-  sc += '      var N=24,R=38,RV=8,circles=[],mouse={x:-9999,y:-9999};\n';
+  sc += '      var N=20,R=36,RV=0,circles=[],mouse={x:-9999,y:-9999};\n';
   sc += '      var REPEL=150,REPELF=10,FRIC=0.985,MAXV=7;\n';
   sc += '      for(var i=0;i<N;i++){var r=R+(Math.random()-0.5)*RV*2;circles.push({x:r+Math.random()*(W-r*2),y:r+Math.random()*(H-r*2),vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,r:r,c:COLORS[i%COLORS.length]});}\n';
   sc += '      for(var k=0;k<40;k++)for(var i=0;i<circles.length;i++)for(var j=i+1;j<circles.length;j++){var a=circles[i],b=circles[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||0.001,mn=a.r+b.r;if(d<mn){var ov=(mn-d)*0.5,nx=dx/d,ny=dy/d;a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;}}\n';
