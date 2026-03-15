@@ -1154,9 +1154,9 @@ function openCrop(src) {
     document.getElementById('crop-y').value = 0;
     updateCropPreview();
   };
-  img.crossOrigin = 'anonymous';
-  img.src = src + (src.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-  if (img.complete && img.naturalWidth) img.onload();
+  img.crossOrigin='anonymous';
+  if(src&&src.startsWith('http')){fetch(src,{mode:'cors',cache:'no-store'}).then(function(r){return r.blob();}).then(function(b){img.src=URL.createObjectURL(b);}).catch(function(){img.src=src;});}else{img.src=src;}
+  if(img.complete&&img.naturalWidth)img.onload();
 
   // Sliders
   document.getElementById('crop-zoom').oninput = e => { cropState.zoom = parseInt(e.target.value); updateCropPreview(); };
@@ -1784,7 +1784,7 @@ async function deleteAT(id) {
     apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=first_name,last_name,tagline,apply_url,hero_image_url"),
     apiFetch(U+"/rest/v1/companies?id=eq."+C+"&select=accent,accent_glow")
   ]).then(function(results){
-    var e=results[0][0];
+    var e=results[0][0];var teamData=results[2]||[];
     var co=results[1][0]||{accent:"#2bbfef",accent_glow:"rgba(43,191,239,0.35)"};
     if(!e)return;
     // Nav logo injection (baked at generation time)
@@ -1958,6 +1958,7 @@ function genCombinedScript(emp) {
   sc += '<!-- WYL Hero+Bio: ' + emp.first_name + ' ' + emp.last_name + ' - paste once, auto-updates forever -->\n';
   sc += '<div id="wyl-hero" style="min-height:100vh;background:' + gradColor + '"></div>\n';
   sc += '<div id="wyl-bio"></div>\n';
+  sc += '<div id="wyl-team" style="display:none"></div>\n';
   sc += '<link href="https://fonts.googleapis.com/css2?family=Yellowtail&display=swap" rel="stylesheet">\n';
   sc += '<script>\n';
   sc += '(function(){\n';
@@ -1968,7 +1969,7 @@ function genCombinedScript(emp) {
   sc += '  if(!heroEl||!bioEl)return;\n';
   sc += '  function apiFetch(url){return fetch(url,{headers:{"apikey":K,"Authorization":"Bearer "+K}}).then(function(r){return r.json();});}\n';
   sc += '  Promise.all([\n';
-  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,bio_dark_mode,bio_shape,photo_focal_x,photo_focal_y,hero_focal_x,hero_focal_y,instagram_url,linkedin_url,facebook_url,twitter_url,employee_awards(*,award_types(*))"),\n';
+  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,bio_dark_mode,bio_shape,photo_focal_x,photo_focal_y,hero_focal_x,hero_focal_y,instagram_url,linkedin_url,facebook_url,twitter_url,youtube_url,employee_awards(*,award_types(*))"),\n';
   sc += '    apiFetch(U+"/rest/v1/companies?id=eq."+C+"&select=*"),\n';
   sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&select=id").then(function(r){\n';
   sc += '      var eid=r[0]&&r[0].id;\n';
@@ -2061,7 +2062,7 @@ function genCombinedScript(emp) {
   sc += '    if(!spStyle){spStyle=document.createElement("style");spStyle.id="wyl-spin-style";document.head.appendChild(spStyle);}\n';
   sc += '    spStyle.textContent="@keyframes wspin{to{transform:rotate(360deg)}}@media(max-width:768px){#wyl-bio-content{grid-template-columns:1fr!important;gap:24px!important}#wyl-bio{padding:32px 20px!important}}";\n';
   sc += '    var content=document.createElement("div");\n';
-  sc += '    content.id="wyl-bio-content";content.style.cssText="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto";\n';
+  sc += '    content.id=\"wyl-bio-content\";content.style.cssText=\"position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto\";\n';
   sc += '    var leftCol=document.createElement("div");leftCol.style.cssText="display:flex;flex-direction:column;gap:20px";\n';
   sc += '    var nameRow=document.createElement("div");nameRow.style.cssText="display:flex;gap:24px;align-items:flex-start";\n';
   sc += '    var photoWrap=document.createElement("div");photoWrap.style.cssText="position:relative;flex-shrink:0;width:130px;height:130px";\n';
@@ -2074,7 +2075,7 @@ function genCombinedScript(emp) {
   sc += '    var fnDiv=document.createElement("div");fnDiv.style.cssText="font-size:48px;font-weight:900;color:"+textPrimary+";line-height:1;letter-spacing:-1px";fnDiv.textContent=e.first_name||"";\n';
   sc += '    var lnDiv=document.createElement("div");lnDiv.style.cssText="font-family:Yellowtail,cursive;font-size:54px;color:"+accent+";line-height:1.1";lnDiv.textContent=e.last_name||"";\n';
   sc += '    var tagsDiv=document.createElement("div");tagsDiv.style.cssText="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px";tagsDiv.innerHTML=tags;\n';
-  sc += '    nameInfo.appendChild(fnDiv);nameInfo.appendChild(lnDiv);nameInfo.appendChild(tagsDiv);\n';
+  sc += '    nameInfo.appendChild(fnDiv);nameInfo.appendChild(lnDiv);nameInfo.appendChild(tagsDiv);if(socialHtml){var socInline=document.createElement("div");socInline.style.cssText="margin-top:10px";socInline.innerHTML=socialHtml;nameInfo.appendChild(socInline);}\n';
   sc += '    if(e.nmls){var nmlsP=document.createElement("p");nmlsP.style.cssText="font-size:12px;color:"+textSecondary+";margin-top:6px";nmlsP.textContent="NMLS #"+e.nmls;nameInfo.appendChild(nmlsP);}\n';
   sc += '    nameRow.appendChild(photoWrap);nameRow.appendChild(nameInfo);leftCol.appendChild(nameRow);\n';
   sc += '    if(e.email||e.phone){\n';
@@ -2093,15 +2094,113 @@ function genCombinedScript(emp) {
   sc += '    }\n';
   sc += '    content.appendChild(leftCol);content.appendChild(rightCol);bioEl.appendChild(content);\n';
   sc += '\n';
-  sc += '    // Multi-shape physics background\n';
+  sc += '    // TEAM/VIDEO SECTION\n';
+  sc += '    (function(){\n';
+  sc += '      var teamEl=document.getElementById("wyl-team");\n';
+  sc += '      if(!teamEl)return;\n';
+  sc += '      var ytUrl=e.youtube_url||"";\n';
+  sc += '      var ytId="";\n';
+  sc += '      if(ytUrl){var ytm=ytUrl.match(/(?:v=|youtu\\.be\\/|embed\\/)([A-Za-z0-9_-]{11})/);if(ytm)ytId=ytm[1];}\n';
+  sc += '      var myTeam=null,teamMembers=[];\n';
+  sc += '      if(teamData&&teamData.length>0&&teamData[0].teams){\n';
+  sc += '        myTeam=teamData[0].teams;\n';
+  sc += '        if(myTeam.team_members){\n';
+  sc += '          teamMembers=myTeam.team_members.filter(function(m){return m.employees&&String(m.employees.id)!==String(e.id);}).map(function(m){return m.employees;});\n';
+  sc += '        }\n';
+  sc += '      }\n';
+  sc += '      if(!ytId&&teamMembers.length===0)return;\n';
+  sc += '      teamEl.style.display="block";\n';
+  sc += '      var tDark=!isDark;\n';
+  sc += '      var tBg=tDark?(C==="valor"?"#1a0505":"#0d1f2d"):"#f8fafc";\n';
+  sc += '      var tPrimary=tDark?"rgba(255,255,255,0.95)":"#1a2332";\n';
+  sc += '      var tSec=tDark?"rgba(255,255,255,0.55)":"#6b7c93";\n';
+  sc += '      var tBorder=tDark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)";\n';
+  sc += '      var tCardBg=tDark?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.9)";\n';
+  sc += '      teamEl.style.cssText="background:"+tBg+";padding:60px 48px;width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box";\n';
+  sc += '      var wrap=document.createElement("div");\n';
+  sc += '      wrap.style.cssText="max-width:1400px;margin:0 auto;display:grid;gap:48px;grid-template-columns:"+(ytId&&teamMembers.length?"1fr 1fr":"1fr")+";align-items:start";\n';
+  sc += '      if(window.innerWidth<=768)wrap.style.gridTemplateColumns="1fr";\n';
+  sc += '      if(ytId){\n';
+  sc += '        var vWrap=document.createElement("div");\n';
+  sc += '        var vH=document.createElement("h2");\n';
+  sc += '        vH.style.cssText="font-size:28px;font-weight:900;color:"+tPrimary+";margin:0 0 20px;letter-spacing:-0.5px";\n';
+  sc += '        vH.textContent=e.first_name+"\'s Story";\n';
+  sc += '        var vBox=document.createElement("div");\n';
+  sc += '        vBox.style.cssText="position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15)";\n';
+  sc += '        var vFr=document.createElement("iframe");\n';
+  sc += '        vFr.src="https://www.youtube.com/embed/"+ytId+"?rel=0&modestbranding=1";\n';
+  sc += '        vFr.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:none";\n';
+  sc += '        vFr.setAttribute("allow","accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture");\n';
+  sc += '        vFr.setAttribute("allowfullscreen","");\n';
+  sc += '        vBox.appendChild(vFr);vWrap.appendChild(vH);vWrap.appendChild(vBox);wrap.appendChild(vWrap);\n';
+  sc += '      }\n';
+  sc += '      if(teamMembers.length){\n';
+  sc += '        var tWrap=document.createElement("div");\n';
+  sc += '        var tH=document.createElement("h2");\n';
+  sc += '        tH.style.cssText="font-size:28px;font-weight:900;color:"+tPrimary+";margin:0 0 20px;letter-spacing:-0.5px";\n';
+  sc += '        tH.textContent="Meet the "+(myTeam&&myTeam.name?myTeam.name:"Team");\n';
+  sc += '        tWrap.appendChild(tH);\n';
+  sc += '        var grid=document.createElement("div");\n';
+  sc += '        grid.style.cssText="display:flex;flex-direction:column;gap:12px";\n';
+  sc += '        teamMembers.forEach(function(m){\n';
+  sc += '          var card=document.createElement("div");\n';
+  sc += '          card.style.cssText="display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:14px;border:1px solid "+tBorder+";background:"+tCardBg+";cursor:pointer;transition:background .2s";\n';
+  sc += '          card.onmouseover=function(){this.style.background=tDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)";};\n';
+  sc += '          card.onmouseout=function(){this.style.background=tCardBg;};\n';
+  sc += '          var img=document.createElement("img");\n';
+  sc += '          img.src=m.photo_url||"";\n';
+  sc += '          img.style.cssText="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid "+accent;\n';
+  sc += '          img.onerror=function(){this.style.display="none";};\n';
+  sc += '          var info=document.createElement("div");\n';
+  sc += '          var nm=document.createElement("div");\n';
+  sc += '          nm.style.cssText="font-size:15px;font-weight:700;color:"+tPrimary;\n';
+  sc += '          nm.textContent=(m.first_name||"")+" "+(m.last_name||"");\n';
+  sc += '          var tt=document.createElement("div");\n';
+  sc += '          tt.style.cssText="font-size:12px;color:"+tSec+";margin-top:2px";\n';
+  sc += '          tt.textContent=m.title||"";\n';
+  sc += '          info.appendChild(nm);info.appendChild(tt);\n';
+  sc += '          card.appendChild(img);card.appendChild(info);\n';
+  sc += '          (function(mem){\n';
+  sc += '            card.addEventListener("click",function(){\n';
+  sc += '              var ov=document.createElement("div");\n';
+  sc += '              ov.style.cssText="position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box";\n';
+  sc += '              ov.addEventListener("click",function(ev){if(ev.target===ov)document.body.removeChild(ov);});\n';
+  sc += '              var pop=document.createElement("div");\n';
+  sc += '              pop.style.cssText="background:"+(isDark?"#1a2332":"#fff")+";border-radius:20px;max-width:460px;width:100%;padding:36px;position:relative;box-shadow:0 24px 80px rgba(0,0,0,0.4)";\n';
+  sc += '              var cls=document.createElement("button");\n';
+  sc += '              cls.textContent="✕";cls.style.cssText="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:"+tSec;\n';
+  sc += '              cls.onclick=function(){document.body.removeChild(ov);};\n';
+  sc += '              var pi=document.createElement("img");\n';
+  sc += '              pi.src=mem.photo_url||"";pi.style.cssText="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid "+accent+";display:block;margin:0 auto 20px";\n';
+  sc += '              pi.onerror=function(){this.style.display="none";};\n';
+  sc += '              var pn=document.createElement("div");\n';
+  sc += '              pn.style.cssText="font-size:26px;font-weight:900;color:"+tPrimary+";text-align:center;letter-spacing:-0.5px";\n';
+  sc += '              pn.textContent=(mem.first_name||"")+" "+(mem.last_name||"");\n';
+  sc += '              var pt=document.createElement("div");\n';
+  sc += '              pt.style.cssText="font-size:13px;color:"+accent+";text-align:center;margin-top:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase";\n';
+  sc += '              pt.textContent=mem.title||"";\n';
+  sc += '              pop.appendChild(cls);pop.appendChild(pi);pop.appendChild(pn);pop.appendChild(pt);\n';
+  sc += '              if(mem.bio){var pb=document.createElement("p");pb.style.cssText="font-size:14px;line-height:1.8;color:"+tSec+";margin-top:16px;text-align:center";pb.textContent=mem.bio;pop.appendChild(pb);}\n';
+  sc += '              ov.appendChild(pop);document.body.appendChild(ov);\n';
+  sc += '            });\n';
+  sc += '          })(m);\n';
+  sc += '          grid.appendChild(card);\n';
+  sc += '        });\n';
+  sc += '        tWrap.appendChild(grid);wrap.appendChild(tWrap);\n';
+  sc += '      }\n';
+  sc += '      teamEl.appendChild(wrap);\n';
+  sc += '    })();\n';
+
+  sc += '\n';
+  sc += '    // Multi-shape background\n';
   sc += '    var _bioShape=e.bio_shape||cfg.shape||"rings";\n';
   sc += '    var _isValor=(C==="valor");\n';
   sc += '    var _CL=_isValor\n';
-  sc += '      ?["rgba(252,165,165,0.38)","rgba(248,113,113,0.30)","rgba(239,68,68,0.24)","rgba(220,38,38,0.18)","rgba(254,202,202,0.32)"]\n';
-  sc += '      :["rgba(186,230,253,0.38)","rgba(125,211,252,0.30)","rgba(56,189,248,0.24)","rgba(14,165,233,0.18)","rgba(224,242,254,0.32)"];\n';
+  sc += '      ?["rgba(252,165,165,0.38)","rgba(248,113,113,0.30)","rgba(239,68,68,0.24)","rgba(220,38,38,0.18)"]\n';
+  sc += '      :["rgba(186,230,253,0.38)","rgba(125,211,252,0.30)","rgba(56,189,248,0.24)","rgba(14,165,233,0.18)"];\n';
   sc += '    var _CD=_isValor\n';
-  sc += '      ?["rgba(239,68,68,0.36)","rgba(220,38,38,0.28)","rgba(185,28,28,0.22)"]\n';
-  sc += '      :["rgba(56,189,248,0.36)","rgba(2,132,199,0.28)","rgba(7,89,133,0.22)"];\n';
+  sc += '      ?["rgba(239,68,68,0.35)","rgba(220,38,38,0.27)","rgba(185,28,28,0.20)"]\n';
+  sc += '      :["rgba(56,189,248,0.35)","rgba(2,132,199,0.27)","rgba(7,89,133,0.20)"];\n';
   sc += '    var _COLORS=isDark?_CD:_CL;\n';
   sc += '    function initPhysics(){\n';
   sc += '      var W=bioEl.offsetWidth,H=bioEl.offsetHeight;\n';
@@ -2771,13 +2870,13 @@ function renderForm(panel) {
           </button>`).join('')}
         </div>
       </div>
-        <label class="field-label" style="margin-bottom:8px;margin-top:14px">Background Style</label>
+      <div class="field-wrap"><label class="field-label">YouTube URL <span style="font-size:10px;opacity:0.5">(optional)</span></label><input class="fi" value="${f.youtube_url||''}" oninput="setF('youtube_url',this.value)" placeholder="https://youtube.com/watch?v=..."></div>
+      <label class="field-label" style="margin-bottom:8px;margin-top:14px">Background Style</label>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
           ${[["rings","⭕","Rings"],["stars","⭐","Stars"],["zigzag","≋","Zigzag"],["waves","〜","Waves"]].map(([val,icon,lbl])=>`
-          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||"rings")===val?"background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff":"background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)"}">
-            <div style="font-size:18px;margin-bottom:3px">${icon}</div>${lbl}
-          </button>`).join("")}
+          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}"><div style="font-size:18px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join("")}
         </div>
+      </div>
       <div class="field-wrap"><label class="field-label">Agent Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>
       <div class="sec-div"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
