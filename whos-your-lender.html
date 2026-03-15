@@ -20,8 +20,8 @@ pre{white-space:pre-wrap;word-break:break-all}
 #wyl-app{position:fixed;inset:0;z-index:99999;background:#080808;display:flex;flex-direction:column;overflow:hidden;transition:background 0.6s ease}
 #wyl-app::after{content:'';position:fixed;top:0;left:-100%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.022),transparent);animation:app-shine 8s ease-in-out infinite;pointer-events:none;z-index:100000}
 @keyframes app-shine{0%{left:-100%}60%,100%{left:160%}}
-.flying-cow{position:fixed;pointer-events:none;z-index:99998;opacity:0;transition:opacity 0.5s ease}
-@keyframes cow-float{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-12px) rotate(2deg)}75%{transform:translateY(8px) rotate(-1.5deg)}}
+.shooting-star{position:fixed;top:0;left:0;width:2px;height:2px;border-radius:50%;background:#fff;pointer-events:none;z-index:99998;opacity:0;animation:shoot linear forwards}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0)}5%{opacity:1}80%{opacity:0.6}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 .focal-picker{position:relative;border-radius:8px;overflow:hidden;cursor:crosshair;user-select:none}
 .focal-dot{position:absolute;width:22px;height:22px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,0.3);transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.4);transition:box-shadow .15s}
 .focal-dot::after{content:'';position:absolute;inset:4px;border-radius:50%;background:#fff;opacity:0.9}
@@ -634,16 +634,17 @@ function showAbducted() {
 function renderFocalPicker(imgUrl, fxKey, fyKey, aspectRatio) {
   const fx = state.formData[fxKey] ?? 50;
   const fy = state.formData[fyKey] ?? 50;
+  const ar = aspectRatio || '16/9';
   const id = 'focal-' + fxKey;
-  return `<div style="position:relative;margin-top:6px;border-radius:8px;overflow:hidden;cursor:crosshair;user-select:none;${aspectRatio==='1/1'?'width:min(300px,100%);aspect-ratio:1/1':'aspect-ratio:16/9'};background:#111"
-    id="${id}"
-    onmousedown="focalPickerDown(event,'${id}','${fxKey}','${fyKey}')"
-    ontouchstart="focalPickerTouch(event,'${id}','${fxKey}','${fyKey}')">
-    <img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;object-position:${fx}% ${fy}%;display:block;pointer-events:none" onerror="this.style.opacity=0.2">
-    <div class="focal-dot" style="left:${fx}%;top:${fy}%"></div>
-    <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;pointer-events:none">
-      <span style="font-size:10px;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.5);padding:2px 8px;border-radius:20px">🎯 Click to set focal point · ${fx}% × ${fy}%</span>
+  return `<div style="margin-top:8px">
+    <div style="font-size:10px;color:rgba(200,220,240,0.4);margin-bottom:5px;letter-spacing:.5px">🎯 Click to set focal point — used for mobile crop centering</div>
+    <div class="focal-picker" id="${id}" style="aspect-ratio:${ar};background:#111"
+      onmousedown="focalPickerDown(event,'${id}','${fxKey}','${fyKey}')"
+      ontouchstart="focalPickerTouch(event,'${id}','${fxKey}','${fyKey}')">
+      <img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none" onerror="this.style.display='none'">
+      <div class="focal-dot" style="left:${fx}%;top:${fy}%"></div>
     </div>
+    <div style="font-size:10px;color:rgba(200,220,240,0.3);margin-top:4px">Current: ${fx}% × ${fy}%</div>
   </div>`;
 }
 function focalPickerDown(e, id, fxKey, fyKey) {
@@ -659,21 +660,12 @@ function focalPickerDown(e, id, fxKey, fyKey) {
     setF(fxKey, x); setF(fyKey, y);
     const dot = el.querySelector('.focal-dot');
     if (dot) { dot.style.left = x + '%'; dot.style.top = y + '%'; }
-    // Update preview image object-position live
-    const img = el.querySelector('img');
-    if (img) img.style.objectPosition = x + '% ' + y + '%';
-    // Update label
-    const lbl = el.querySelector('span');
-    if (lbl && lbl.textContent.includes('focal')) lbl.textContent = '🎯 Click to set focal point · ' + x + '% × ' + y + '%';
+    const label = el.nextElementSibling;
+    if (label) label.textContent = 'Current: ' + x + '% × ' + y + '%';
   }
   update(e);
   function onMove(ev) { update(ev); }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onUp);
-  }
+  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchmove', onMove);
@@ -681,88 +673,38 @@ function focalPickerDown(e, id, fxKey, fyKey) {
 }
 function focalPickerTouch(e, id, fxKey, fyKey) { focalPickerDown(e, id, fxKey, fyKey); }
 
-// ── Flying Cow Easter Egg ────────────────────────────────
-const COW_GIF = 'https://harjssiyhpedurbzflba.supabase.co/storage/v1/object/public/Assets/source.gif';
-const COW_SIZE = 200;
-let cowEl = null;
-
-function initCow() {
-  cowEl = document.createElement('img');
-  cowEl.src = COW_GIF;
-  cowEl.className = 'flying-cow';
-  cowEl.style.cssText = 'width:' + COW_SIZE + 'px;height:auto;position:fixed;pointer-events:none;z-index:99998;opacity:0;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))';
-  document.getElementById('wyl-app').appendChild(cowEl);
+// ── Shooting stars ───────────────────────────────────────
+function fireShootingStar() {
+  const star = document.createElement('div');
+  star.className = 'shooting-star';
+  // Start from random top-right area, shoot diagonally down-left
+  const startX = Math.random() * window.innerWidth * 0.8 + window.innerWidth * 0.2;
+  const startY = Math.random() * window.innerHeight * 0.4;
+  const dist = 200 + Math.random() * 400;
+  const angle = 200 + Math.random() * 40; // degrees, roughly down-left
+  const rad = angle * Math.PI / 180;
+  const dx = Math.cos(rad) * dist;
+  const dy = Math.sin(rad) * dist;
+  const dur = 0.6 + Math.random() * 0.8;
+  star.style.cssText = `left:${startX}px;top:${startY}px;--dx:${dx}px;--dy:${dy}px;animation-duration:${dur}s;box-shadow:0 0 4px 1px rgba(255,255,255,0.8),0 0 12px 2px rgba(180,220,255,0.4);width:${1+Math.random()*2}px;height:${1+Math.random()*2}px`;
+  // Add a tail
+  star.style.background = 'linear-gradient(135deg,#fff,rgba(180,220,255,0.3))';
+  star.style.width = (40 + Math.random() * 80) + 'px';
+  star.style.height = '1.5px';
+  star.style.borderRadius = '0';
+  star.style.transform = `rotate(${angle - 180}deg)`;
+  star.style.transformOrigin = 'right center';
+  document.getElementById('wyl-app').appendChild(star);
+  setTimeout(() => star.remove(), dur * 1000 + 100);
 }
-
-function flyTheCow() {
-  if (!cowEl) return;
-  const W = window.innerWidth, H = window.innerHeight;
-  const flipped = Math.random() > 0.5;
-
-  // Pick entry edge: 0=left, 1=right, 2=top, 3=bottom
-  const edge = Math.floor(Math.random() * 4);
-  let startX, startY, endX, endY;
-
-  // Start off-screen
-  if (edge === 0) { startX = -COW_SIZE; startY = H * 0.1 + Math.random() * H * 0.7; }
-  else if (edge === 1) { startX = W + COW_SIZE; startY = H * 0.1 + Math.random() * H * 0.7; }
-  else if (edge === 2) { startX = W * 0.1 + Math.random() * W * 0.7; startY = -COW_SIZE; }
-  else { startX = W * 0.1 + Math.random() * W * 0.7; startY = H + COW_SIZE; }
-
-  // Float to somewhere in the middle area
-  const midX = W * 0.15 + Math.random() * W * 0.7;
-  const midY = H * 0.15 + Math.random() * H * 0.6;
-
-  // Exit off a different edge
-  const exitEdge = (edge + 1 + Math.floor(Math.random() * 3)) % 4;
-  if (exitEdge === 0) { endX = -COW_SIZE; endY = H * 0.1 + Math.random() * H * 0.7; }
-  else if (exitEdge === 1) { endX = W + COW_SIZE; endY = H * 0.1 + Math.random() * H * 0.7; }
-  else if (exitEdge === 2) { endX = W * 0.1 + Math.random() * W * 0.7; endY = -COW_SIZE; }
-  else { endX = W * 0.1 + Math.random() * W * 0.7; endY = H + COW_SIZE; }
-
-  // Flip based on direction
-  const facingRight = midX > startX;
-  cowEl.style.transform = (flipped ? 'scaleX(-1)' : 'scaleX(1)');
-  cowEl.style.left = startX + 'px';
-  cowEl.style.top = startY + 'px';
-  cowEl.style.animation = 'none';
-
-  const flyIn = 1200 + Math.random() * 800;
-  const hangTime = 2000 + Math.random() * 3000;
-  const flyOut = 1000 + Math.random() * 800;
-
-  // Phase 1: fly in
-  cowEl.style.transition = 'left ' + flyIn + 'ms cubic-bezier(0.4,0,0.2,1), top ' + flyIn + 'ms cubic-bezier(0.4,0,0.2,1), opacity 400ms ease';
-  cowEl.style.opacity = '0';
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      cowEl.style.opacity = '0.92';
-      cowEl.style.left = midX + 'px';
-      cowEl.style.top = midY + 'px';
-      // Phase 2: float around
-      setTimeout(() => {
-        cowEl.style.animation = 'cow-float ' + (2.5 + Math.random()) + 's ease-in-out infinite';
-        cowEl.style.transition = '';
-        // Phase 3: fly out
-        setTimeout(() => {
-          cowEl.style.animation = 'none';
-          cowEl.style.transition = 'left ' + flyOut + 'ms cubic-bezier(0.4,0,0.8,1), top ' + flyOut + 'ms cubic-bezier(0.4,0,0.8,1), opacity 400ms ease ' + (flyOut - 400) + 'ms';
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              cowEl.style.opacity = '0';
-              cowEl.style.left = endX + 'px';
-              cowEl.style.top = endY + 'px';
-              // Schedule next visit
-              setTimeout(flyTheCow, 20000 + Math.random() * 25000);
-            });
-          });
-        }, hangTime);
-      }, flyIn);
-    });
-  });
+function scheduleShootingStar() {
+  const delay = 4000 + Math.random() * 10000;
+  setTimeout(() => {
+    if (document.getElementById('wyl-app')) { fireShootingStar(); scheduleShootingStar(); }
+  }, delay);
 }
-
-setTimeout(() => { initCow(); setTimeout(flyTheCow, 3000 + Math.random() * 5000); }, 1500);
+// Start after a short delay
+setTimeout(scheduleShootingStar, 2000);
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
@@ -2090,44 +2032,42 @@ function genCombinedScript(emp) {
   sc += '    }\n';
   sc += '    content.appendChild(leftCol);content.appendChild(rightCol);bioEl.appendChild(content);\n';
   sc += '\n';
-  const _iv = state.coId === 'valor';
-  const _lc = _iv
-    ? [{f:'rgba(254,202,202,0.85)',s:'rgba(239,68,68,0.50)'},{f:'rgba(252,165,165,0.75)',s:'rgba(220,38,38,0.45)'},{f:'rgba(254,226,226,0.80)',s:'rgba(248,113,113,0.40)'}]
-    : [{f:'rgba(186,230,253,0.85)',s:'rgba(56,189,248,0.55)'},{f:'rgba(125,211,252,0.75)',s:'rgba(14,165,233,0.45)'},{f:'rgba(186,230,253,0.65)',s:'rgba(56,189,248,0.35)'}];
-  const _dc = _iv
-    ? [{f:'rgba(153,27,27,0.55)',s:'rgba(239,68,68,0.35)'},{f:'rgba(185,28,28,0.45)',s:'rgba(252,165,165,0.30)'}]
-    : [{f:'rgba(7,89,133,0.55)',s:'rgba(56,189,248,0.35)'},{f:'rgba(2,132,199,0.45)',s:'rgba(125,211,252,0.30)'}];
-  sc += '    // Bumper-car circle physics\n';
+  sc += '    // Physics art background\n';
   sc += '    function initPhysics(){\n';
   sc += '      var W=bioEl.offsetWidth,H=bioEl.offsetHeight;\n';
   sc += '      if(!W||!H){setTimeout(initPhysics,100);return;}\n';
   sc += '      canvas.width=W;canvas.height=H;\n';
   sc += '      var ctx=canvas.getContext("2d");\n';
-  sc += '      var CL=' + JSON.stringify(_lc) + ';\n';
-  sc += '      var CD=' + JSON.stringify(_dc) + ';\n';
-  sc += '      var COLORS=isDark?CD:CL;\n';
-  sc += '      var N=24,R=38,RV=8,circles=[],mouse={x:-9999,y:-9999};\n';
-  sc += '      var REPEL=150,REPELF=10,FRIC=0.985,MAXV=7;\n';
-  sc += '      for(var i=0;i<N;i++){var r=R+(Math.random()-0.5)*RV*2;circles.push({x:r+Math.random()*(W-r*2),y:r+Math.random()*(H-r*2),vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,r:r,c:COLORS[i%COLORS.length]});}\n';
-  sc += '      for(var k=0;k<40;k++)for(var i=0;i<circles.length;i++)for(var j=i+1;j<circles.length;j++){var a=circles[i],b=circles[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||0.001,mn=a.r+b.r;if(d<mn){var ov=(mn-d)*0.5,nx=dx/d,ny=dy/d;a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;}}\n';
-  sc += '      bioEl.addEventListener("mousemove",function(ev){var rc=canvas.getBoundingClientRect();mouse.x=ev.clientX-rc.left;mouse.y=ev.clientY-rc.top;});\n';
-  sc += '      bioEl.addEventListener("mouseleave",function(){mouse.x=-9999;mouse.y=-9999;});\n';
+  sc += '      var shapeColor=isDark?"255,255,255":"26,35,50";\n';
+  sc += '      var N=18,shapes=[];\n';
+  sc += '      for(var i=0;i<N;i++){var r=40+Math.random()*80;shapes.push({x:r+Math.random()*(W-r*2),y:r+Math.random()*(H-r*2),vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:r,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.003,opacity:0.03+Math.random()*0.06});}\n';
+  sc += '      var dragging=null,dragOffX=0,dragOffY=0;\n';
+  sc += '      canvas.style.pointerEvents="auto";\n';
+  sc += '      canvas.addEventListener("mousedown",function(ev){var rect=canvas.getBoundingClientRect(),mx=ev.clientX-rect.left,my=ev.clientY-rect.top;for(var i=shapes.length-1;i>=0;i--){if(Math.hypot(mx-shapes[i].x,my-shapes[i].y)<shapes[i].r){dragging=shapes[i];dragOffX=mx-shapes[i].x;dragOffY=my-shapes[i].y;shapes[i].vx=0;shapes[i].vy=0;break;}}});\n';
+  sc += '      canvas.addEventListener("mousemove",function(ev){if(!dragging)return;var rect=canvas.getBoundingClientRect();dragging.x=ev.clientX-rect.left-dragOffX;dragging.y=ev.clientY-rect.top-dragOffY;});\n';
+  sc += '      canvas.addEventListener("mouseup",function(){dragging=null;});\n';
+  sc += '      function drawShape(ctx,s){\n';
+  sc += '        ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rotation);ctx.globalAlpha=s.opacity;\n';
+  sc += '        ctx.strokeStyle="rgba("+shapeColor+",1)";ctx.fillStyle="rgba("+shapeColor+",0.15)";ctx.lineWidth=2;\n';
+  sc += '        var sh=cfg.shape;\n';
+  sc += '        if(sh==="rings"){ctx.beginPath();ctx.arc(0,0,s.r,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,s.r*0.65,0,Math.PI*2);ctx.stroke();}\n';
+  sc += '        else if(sh==="blobs"){ctx.beginPath();for(var p=0;p<6;p++){var ang=p/6*Math.PI*2,rad=s.r*(0.7+0.3*Math.sin(p*2.3+s.rotation));p===0?ctx.moveTo(Math.cos(ang)*rad,Math.sin(ang)*rad):ctx.lineTo(Math.cos(ang)*rad,Math.sin(ang)*rad);}ctx.closePath();ctx.stroke();ctx.fill();}\n';
+  sc += '        else if(sh==="triangles"){ctx.beginPath();for(var p=0;p<3;p++){var a=p/3*Math.PI*2;ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);}ctx.closePath();ctx.stroke();ctx.beginPath();for(var p=0;p<3;p++){var a=p/3*Math.PI*2+Math.PI;ctx.lineTo(Math.cos(a)*s.r*0.6,Math.sin(a)*s.r*0.6);}ctx.closePath();ctx.stroke();}\n';
+  sc += '        else{for(var p=0;p<6;p++){var a=p/6*Math.PI*2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);ctx.stroke();ctx.beginPath();ctx.moveTo(Math.cos(a)*s.r*0.5,Math.sin(a)*s.r*0.5);ctx.lineTo(Math.cos(a+0.5)*s.r*0.7,Math.sin(a+0.5)*s.r*0.7);ctx.stroke();}}\n';
+  sc += '        ctx.restore();\n';
+  sc += '      }\n';
   sc += '      function tick(){\n';
   sc += '        ctx.clearRect(0,0,W,H);\n';
-  sc += '        for(var i=0;i<circles.length;i++){var c=circles[i];\n';
-  sc += '          var mdx=c.x-mouse.x,mdy=c.y-mouse.y,md=Math.sqrt(mdx*mdx+mdy*mdy);\n';
-  sc += '          if(md<REPEL&&md>0.1){var f=(1-md/REPEL)*REPELF;c.vx+=(mdx/md)*f;c.vy+=(mdy/md)*f;}\n';
-  sc += '          c.vx*=FRIC;c.vy*=FRIC;\n';
-  sc += '          var spd=Math.sqrt(c.vx*c.vx+c.vy*c.vy);if(spd>MAXV){c.vx=c.vx/spd*MAXV;c.vy=c.vy/spd*MAXV;}\n';
-  sc += '          c.x+=c.vx;c.y+=c.vy;\n';
-  sc += '          if(c.x-c.r<0){c.x=c.r;c.vx=Math.abs(c.vx);}if(c.x+c.r>W){c.x=W-c.r;c.vx=-Math.abs(c.vx);}\n';
-  sc += '          if(c.y-c.r<0){c.y=c.r;c.vy=Math.abs(c.vy);}if(c.y+c.r>H){c.y=H-c.r;c.vy=-Math.abs(c.vy);}\n';
+  sc += '        for(var i=0;i<shapes.length;i++){var s=shapes[i];if(s===dragging)continue;s.x+=s.vx;s.y+=s.vy;s.rotation+=s.rotSpeed;\n';
+  sc += '          if(s.x-s.r<0){s.x=s.r;s.vx=Math.abs(s.vx);}if(s.x+s.r>W){s.x=W-s.r;s.vx=-Math.abs(s.vx);}\n';
+  sc += '          if(s.y-s.r<0){s.y=s.r;s.vy=Math.abs(s.vy);}if(s.y+s.r>H){s.y=H-s.r;s.vy=-Math.abs(s.vy);}\n';
+  sc += '          for(var j=i+1;j<shapes.length;j++){var b=shapes[j],dx=b.x-s.x,dy=b.y-s.y,dist=Math.hypot(dx,dy),minD=s.r+b.r;\n';
+  sc += '            if(dist<minD&&dist>0){var nx=dx/dist,ny=dy/dist,ov=(minD-dist)*0.5;s.x-=nx*ov;s.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;\n';
+  sc += '              var rv=(s.vx-b.vx)*nx+(s.vy-b.vy)*ny;if(rv>0){s.vx-=rv*nx*0.6;s.vy-=rv*ny*0.6;b.vx+=rv*nx*0.6;b.vy+=rv*ny*0.6;}}}\n';
   sc += '        }\n';
-  sc += '        for(var i=0;i<circles.length;i++)for(var j=i+1;j<circles.length;j++){var a=circles[i],b=circles[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy),mn=a.r+b.r;\n';
-  sc += '          if(d<mn&&d>0){var ov=mn-d,nx=dx/d,ny=dy/d;a.x-=nx*ov*0.5;a.y-=ny*ov*0.5;b.x+=nx*ov*0.5;b.y+=ny*ov*0.5;\n';
-  sc += '            var dvx=a.vx-b.vx,dvy=a.vy-b.vy,dot=dvx*nx+dvy*ny;\n';
-  sc += '            if(dot<0){a.vx-=dot*nx;a.vy-=dot*ny;b.vx+=dot*nx;b.vy+=dot*ny;}}}\n';
-  sc += '        for(var i=0;i<circles.length;i++){var c=circles[i];ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=c.c.f;ctx.strokeStyle=c.c.s;ctx.lineWidth=1.5;ctx.fill();ctx.stroke();}\n';
+  sc += '        var dOrder=shapes.filter(function(s){return s!==dragging;});\n';
+  sc += '        if(dragging)dOrder.push(dragging);\n';
+  sc += '        dOrder.forEach(function(s){drawShape(ctx,s);});\n';
   sc += '        requestAnimationFrame(tick);\n';
   sc += '      }\n';
   sc += '      tick();\n';
@@ -2568,10 +2508,8 @@ function renderForm(panel) {
         </div>
         <div id="hero-picker-body" style="display:none;margin-top:10px">
           <div style="font-size:10px;color:rgba(200,220,240,0.3);margin-bottom:8px;line-height:1.6">Recommended: <strong style="color:rgba(200,220,240,0.55)">1920×1080px</strong> · JPG or WebP · under 5MB</div>
-          ${(f.hero_image_url&&!f._heroCropDataUrl) ? renderFocalPicker(f.hero_image_url,'hero_focal_x','hero_focal_y','16/9')
-            .replace('</div>', '<div style="position:absolute;top:6px;right:6px;display:flex;gap:4px"><button type="button" onclick="event.stopPropagation();openHeroCrop(\''+f.hero_image_url+'\')" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button><button type="button" data-action="clearhero" style="padding:2px 8px;border-radius:4px;background:rgba(255,50,50,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">✕ Clear</button></div></div>') : ''}
-          ${f._heroCropDataUrl ? renderFocalPicker(f._heroCropDataUrl,'hero_focal_x','hero_focal_y','16/9')
-            .replace('</div>', '<div style="position:absolute;top:6px;right:6px"><button type="button" onclick="event.stopPropagation();openHeroCrop(state.formData._heroCropDataUrl)" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button></div></div>') : ''}
+          ${(f.hero_image_url&&!f._heroCropDataUrl) ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:8px;position:relative;aspect-ratio:16/9"><img src="${f.hero_image_url}" style="width:100%;height:100%;object-fit:cover;display:block"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5),transparent 50%);display:flex;align-items:flex-end;padding:8px 10px;gap:8px;justify-content:space-between"><span style="font-size:10px;color:#fff;font-weight:600">✓ Current banner</span><div style="display:flex;gap:6px"><button type="button" onclick="event.stopPropagation();openHeroCrop('${f.hero_image_url}')" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button><button type="button" data-action="clearhero" style="padding:2px 8px;border-radius:4px;background:rgba(255,50,50,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">✕ Clear</button></div></div></div>` : ''}
+          ${f._heroCropDataUrl ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:8px;position:relative;aspect-ratio:16/9"><img src="${f._heroCropDataUrl}" style="width:100%;height:100%;object-fit:cover;display:block"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5),transparent 50%);display:flex;align-items:flex-end;padding:8px 10px;gap:8px;justify-content:space-between"><span style="font-size:11px;color:rgba(100,255,150,0.9);font-weight:600">✓ Cropped — saves on transmit</span><button type="button" onclick="event.stopPropagation();openHeroCrop(state.formData._heroCropDataUrl)" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button></div></div>` : ''}
           <div style="border:1.5px dashed rgba(255,255,255,0.12);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);margin-bottom:8px" onclick="document.getElementById('hero-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.3)'" ondragleave="this.style.borderColor='rgba(255,255,255,0.12)'" ondrop="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.12)';handleHeroFile(event.dataTransfer.files[0])">
             <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="handleHeroFile(this.files[0])">
             <div style="font-size:11px;color:rgba(200,220,240,0.5)">📁 Click or drag to upload</div>
@@ -2588,6 +2526,7 @@ function renderForm(panel) {
             </div>`).join('')}
           </div>` : `<div style="font-size:10px;color:rgba(200,220,240,0.2);margin-bottom:8px">No stock photos yet — add in Settings.</div>`}
           <input class="fi" value="${f._heroCropDataUrl?'(cropped — save to upload)':(f.hero_image_url||'')}" oninput="setF('hero_image_url',this.value)" placeholder="Or paste a URL" style="font-size:11px">
+          ${(f.hero_image_url||f._heroCropDataUrl) ? renderFocalPicker(f._heroCropDataUrl||f.hero_image_url,'hero_focal_x','hero_focal_y','16/9') : ''}
         </div>
       </div>
 
@@ -2615,24 +2554,17 @@ function renderForm(panel) {
       <!-- Headshot -->
       <div class="field-wrap">
         <label class="field-label">Headshot Photo</label>
-        ${f.photo_url ? `
-        <div style="position:relative;width:min(300px,100%);margin-bottom:6px">
-          ${renderFocalPicker(f.photo_url,'photo_focal_x','photo_focal_y','1/1')}
-          <div style="position:absolute;bottom:30px;left:0;right:0;text-align:center;pointer-events:none">
-            <div style="width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(255,255,255,0.2);position:absolute;inset:0;border-radius:0;pointer-events:none"></div>
-          </div>
-          <div onclick="document.getElementById('photo-file-input').click()" style="position:absolute;top:6px;left:6px;padding:3px 8px;border-radius:5px;background:rgba(0,0,0,0.5);font-size:10px;color:rgba(255,255,255,0.7);cursor:pointer">📷 Replace</div>
-        </div>` : `
         <div id="photo-upload-zone" style="border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:all .2s"
           onclick="document.getElementById('photo-file-input').click()"
           ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.35)';this.style.background='rgba(255,255,255,0.05)'"
           ondragleave="this.style.borderColor='';this.style.background=''"
           ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handlePhotoFile(event.dataTransfer.files[0])">
-          <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px">👽</div>
-          <div style="font-size:11px;color:rgba(200,220,240,0.4);font-weight:500">Click or drag to upload</div>
-        </div>`}
-        <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(this.files[0])">
+          <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(this.files[0])">
+          ${f.photo_url ? `<img src="${f.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 8px;border:2px solid rgba(255,255,255,0.2)" onerror="this.style.display='none'">` : `<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px">👽</div>`}
+          <div id="photo-upload-hint" style="font-size:11px;color:rgba(200,220,240,0.4);font-weight:500">${f.photo_url?'Click or drag to replace':'Click or drag to upload'}</div>
+        </div>
         <input class="fi" id="f-photo_url" value="${f.photo_url&&!f._cropDataUrl?f.photo_url:f._cropDataUrl?'(cropped — will upload on save)':''}" oninput="setF('photo_url',this.value);updatePhotoPreview(this.value);if(this.value)injectCropButton();" placeholder="Or paste a URL" style="margin-top:6px;font-size:11px;color:rgba(200,220,240,0.5)">
+        ${f.photo_url ? renderFocalPicker(f.photo_url,'photo_focal_x','photo_focal_y','1/1') : ''}
       </div>
 
       <!-- Hero Tagline -->
@@ -2710,6 +2642,13 @@ function renderForm(panel) {
           <button type="button" data-action="setbiodark" data-val="true" style="flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${f.bio_dark_mode? 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
             🌙 Dark <span style="font-size:9px;display:block;font-weight:400;opacity:0.6;margin-top:2px">${state.coId==='highland'?'Navy':'Dark Red'} bg, white text</span>
           </button>
+        </div>
+        <label class="field-label" style="margin-bottom:8px">Animated Background Shape</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          ${[['rings','⬤','Rings'],['blobs','☁️','Blobs'],['triangles','▲','Triangles'],['snowflakes','❄️','Snowflakes']].map(([val,icon,label])=>`
+          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
+            <div style="font-size:18px;margin-bottom:3px">${icon}</div>${label}
+          </button>`).join('')}
         </div>
       </div>
       <div class="field-wrap"><label class="field-label">Agent Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>
