@@ -565,7 +565,8 @@ let state = {
   showHeroPicker: false, showHeadshotPicker: false, showLogoPicker: false,
   heroSearch: '',
   // Collapsed state for settings sections
-  settingsOpen: { banners: false, headshots: false, teamlogos: false, awards: false, teams: false }
+  settingsOpen: { banners: false, headshots: false, teamlogos: false, awards: false, teams: false },
+  formOpen: { hero: true, details: true, bio: true, awards: false, teams: false }
 };
 
 // ── Starfield ────────────────────────────────────────────
@@ -2823,6 +2824,8 @@ function renderForm(panel) {
   const f = state.formData;
   const isEdit = !!state.selId;
   const ats = state.awardTypes;
+  const fo = state.formOpen;
+
   let awardsHtml = state.formAwards.map((a,i) => {
     const at = ats.find(t=>(t.id===a.award_type_id)||(t.id===a.award_types?.id)) || a.award_types || {};
     return `<div class="award-card" style="margin-bottom:8px">
@@ -2837,222 +2840,210 @@ function renderForm(panel) {
     </div>`;
   }).join('');
 
+  // Accordion helper
+  function acc(key, emoji, title, badge, content) {
+    const open = fo[key];
+    return `<div style="border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <div data-action="toggleform" data-val="${key}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;background:rgba(255,255,255,0.03);user-select:none">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(200,220,240,0.6)">${emoji} ${title}${badge?` <span style="font-size:9px;font-weight:700;color:rgba(100,220,130,0.9);background:rgba(100,220,130,0.1);border:1px solid rgba(100,220,130,0.25);border-radius:4px;padding:1px 5px;margin-left:6px">${badge}</span>`:''}</span>
+        <span style="font-size:11px;color:rgba(200,220,240,0.3)">${open?'▲':'▼'}</span>
+      </div>
+      ${open?`<div style="padding:14px">${content}</div>`:''}
+    </div>`;
+  }
+
+  // ── HERO SECTION ──────────────────────────────────────────────────────────
+  const heroBadge = (f.hero_image_url||f._heroCropDataUrl) ? '✓ SET' : '';
+  const heroContent = `
+    <div class="field-wrap">
+      <label class="field-label">Banner Image</label>
+      ${(f.hero_image_url||f._heroCropDataUrl) ? `
+      <div style="position:relative;width:100%;margin-bottom:6px">
+        ${renderFocalPicker(f._heroCropDataUrl||f.hero_image_url,'hero_focal_x','hero_focal_y','16/9')}
+        <div onclick="document.getElementById('hero-file-input').click()" style="position:absolute;top:6px;left:6px;padding:3px 8px;border-radius:5px;background:rgba(0,0,0,0.55);font-size:10px;color:rgba(255,255,255,0.8);cursor:pointer">📷 Replace</div>
+        <button type="button" onclick="openHeroCrop('${f._heroCropDataUrl||f.hero_image_url}')" style="position:absolute;top:6px;right:34px;padding:3px 8px;border-radius:5px;background:rgba(43,191,239,0.6);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Crop</button>
+        <button type="button" data-action="clearhero" style="position:absolute;top:6px;right:0px;padding:3px 8px;border-radius:5px;background:rgba(255,50,50,0.6);border:none;color:#fff;font-size:10px;cursor:pointer">✕</button>
+      </div>` : `
+      <div style="border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:all .2s;margin-bottom:6px"
+        onclick="document.getElementById('hero-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.35)';this.style.background='rgba(255,255,255,0.05)'"
+        ondragleave="this.style.borderColor='';this.style.background=''"
+        ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleHeroFile(event.dataTransfer.files[0])">
+        <div style="font-size:28px;margin-bottom:8px">🖼️</div>
+        <div style="font-size:12px;color:rgba(200,220,240,0.5);font-weight:500">Click or drag to upload hero banner</div>
+        <div style="font-size:10px;color:rgba(200,220,240,0.25);margin-top:4px">1920×1080px · JPG or WebP · under 5MB</div>
+      </div>`}
+      <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="handleHeroFile(this.files[0])">
+      <input class="fi" value="${f._heroCropDataUrl?'(cropped — save to upload)':(f.hero_image_url||'')}" oninput="setF('hero_image_url',this.value)" placeholder="Or paste a URL" style="font-size:11px">
+    </div>
+    ${state.stockPhotos.length > 0 ? `
+    <div class="field-wrap">
+      <label class="field-label">Banner Library</label>
+      <input placeholder="🔍 Search by name..." oninput="state.heroSearch=this.value;renderMain()" value="${state.heroSearch||''}" style="width:100%;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(220,235,255,0.8);font-size:10px;outline:none;margin-bottom:6px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:180px;overflow-y:auto">
+        ${state.stockPhotos.filter(p=>!state.heroSearch||p.label.toLowerCase().includes((state.heroSearch||'').toLowerCase())).map(p=>`
+        <div style="position:relative;border-radius:5px;overflow:hidden;aspect-ratio:16/9;border:2px solid ${(f.hero_image_url===p.url&&!f._heroCropDataUrl)?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.04)'};transition:border .15s">
+          <div data-action="pickhero" data-val="${p.url}" style="width:100%;height:100%;cursor:pointer"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover;pointer-events:none"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.65);padding:2px 4px">
+            <input value="${p.label||''}" placeholder="Name..." onclick="event.stopPropagation()" onblur="renameStockPhoto('${p.id}',this.value)" style="width:100%;background:transparent;border:none;color:rgba(255,255,255,0.7);font-size:9px;outline:none">
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+    <div class="field-wrap">
+      <label class="field-label">Hero Logo ${f.hero_logo_url?'<span style="font-size:9px;font-weight:700;color:rgba(100,220,130,0.9);background:rgba(100,220,130,0.1);border:1px solid rgba(100,220,130,0.25);border-radius:4px;padding:1px 6px;margin-left:4px">✓ SET</span>':''}</label>
+      ${f.hero_logo_url ? `<div style="height:40px;margin-bottom:8px;display:flex;align-items:center;gap:10px"><div style="height:36px;padding:5px 10px;border-radius:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center"><img src="${f.hero_logo_url}" style="height:24px;object-fit:contain" onerror="this.style.display='none'"></div><button type="button" data-action="clearlogourl" style="padding:4px 9px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.6);font-size:11px;cursor:pointer">✕ Clear</button></div>` : ''}
+      <button type="button" data-action="togglepicker" data-val="logo" style="width:100%;padding:7px 12px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(200,220,240,0.45);font-size:11px;cursor:pointer;text-align:left;margin-bottom:${state.showLogoPicker?'8px':'0'}">
+        🏷 ${state.showLogoPicker ? '▲ Hide logo options' : '▼ Choose logo for hero'}
+      </button>
+      ${state.showLogoPicker ? `
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${state.coId==='highland'?'Highland':'Valor'} Logos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${(LOGOS[state.coId]||[]).map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
+        </div>
+        ${(()=>{const mt=state.teams.filter(t=>state.formTeams.includes(t.id));if(!mt.length)return '';const tl=state.teamLogos.filter(l=>mt.some(t=>String(l.team_id)===String(t.id)));if(!tl.length)return '';return `<div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${mt.length===1?mt[0].name+' Logos':'Team Logos'}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tl.map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;display:inline-flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;max-width:70px;object-fit:contain;pointer-events:none"><span style="font-size:10px;color:rgba(200,220,240,0.5)">${l.label||'Logo'}</span></div>`).join('')}</div>`;})()}
+        <div style="display:flex;gap:6px">
+          ${['auto','light','dark','none'].map(m=>`<button type="button" data-action="setherologomode" data-val="${m}" style="padding:4px 10px;border-radius:5px;font-size:10px;cursor:pointer;${(f.hero_logo_mode||'auto')===m?'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(220,235,255,0.9)':'background:transparent;border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.3)'}">${m.charAt(0).toUpperCase()+m.slice(1)}</button>`).join('')}
+        </div>
+        <button type="button" data-action="clearlogourl" style="padding:5px 10px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.55);font-size:10px;cursor:pointer;align-self:flex-start">✕ No logo</button>
+      </div>` : ''}
+    </div>
+    <div class="field-wrap"><label class="field-label">Tagline</label><input class="fi" value="${f.tagline||''}" oninput="setF('tagline',this.value)" placeholder="20+ years guiding Georgians home..."></div>
+    <div class="field-wrap">
+      <label class="field-label">Gradient Color <span style="font-size:10px;color:rgba(200,220,240,0.3);font-weight:400;text-transform:none;letter-spacing:0">default: ${state.coId==='highland'?'navy':'dark red'}</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="color" id="hero-grad-color" value="${f.hero_gradient_color||(state.coId==='highland'?'#0d1f2d':'#1a0808')}" style="width:44px;height:36px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:none;cursor:pointer;padding:2px" oninput="setF('hero_gradient_color',this.value);document.getElementById('hero-grad-hex').value=this.value">
+        <input class="fi" id="hero-grad-hex" value="${f.hero_gradient_color||''}" placeholder="${state.coId==='highland'?'#0d1f2d (default)':'#1a0808 (default)'}" style="flex:1" oninput="setF('hero_gradient_color',this.value);if(this.value.match(/^#[0-9a-f]{6}$/i))document.getElementById('hero-grad-color').value=this.value">
+        ${f.hero_gradient_color?`<button type="button" onclick="setF('hero_gradient_color','');document.getElementById('hero-grad-hex').value='';renderMain()" style="padding:4px 9px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.6);font-size:11px;cursor:pointer">✕</button>`:''}
+      </div>
+    </div>`;
+
+  // ── HEADSHOT SECTION (inside Details) ────────────────────────────────────
+  const detailsContent = `
+    <div class="field-wrap">
+      <label class="field-label">Headshot Photo</label>
+      ${(f.photo_url||f._cropDataUrl) ? `
+      <div style="position:relative;width:min(300px,100%);margin-bottom:6px">
+        ${renderFocalPicker(f._cropDataUrl||f.photo_url,'photo_focal_x','photo_focal_y','1/1')}
+        <div onclick="document.getElementById('photo-file-input').click()" style="position:absolute;top:6px;left:6px;padding:3px 8px;border-radius:5px;background:rgba(0,0,0,0.5);font-size:10px;color:rgba(255,255,255,0.7);cursor:pointer">📷 Replace</div>
+      </div>` : `
+      <div id="photo-upload-zone" style="border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:all .2s"
+        onclick="document.getElementById('photo-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.35)';this.style.background='rgba(255,255,255,0.05)'"
+        ondragleave="this.style.borderColor='';this.style.background=''"
+        ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handlePhotoFile(event.dataTransfer.files[0])">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px">👽</div>
+        <div style="font-size:11px;color:rgba(200,220,240,0.4);font-weight:500">Click or drag to upload</div>
+      </div>`}
+      <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(this.files[0])">
+      <input class="fi" id="f-photo_url" value="${f.photo_url&&!f._cropDataUrl?f.photo_url:f._cropDataUrl?'(cropped — will upload on save)':''}" oninput="setF('photo_url',this.value);updatePhotoPreview(this.value);if(this.value)injectCropButton();" placeholder="Or paste a URL" style="margin-top:6px;font-size:11px;color:rgba(200,220,240,0.5)">
+    </div>
+    <div class="form-row">
+      <div class="field-wrap"><label class="field-label">First Name</label><input class="fi" id="f-first_name" value="${f.first_name||''}" oninput="setF('first_name',this.value)" placeholder="Mark"></div>
+      <div class="field-wrap"><label class="field-label">Last Name</label><input class="fi" id="f-last_name" value="${f.last_name||''}" oninput="setF('last_name',this.value)" placeholder="Milam"></div>
+    </div>
+    <div class="field-wrap"><label class="field-label">URL Slug</label><input class="fi" value="${f.slug||''}" oninput="setF('slug',this.value)" placeholder="mark-milam"></div>
+    <div class="field-wrap"><label class="field-label">Title(s) — comma separated</label><input class="fi" value="${f.title||''}" oninput="setF('title',this.value)" placeholder="CEO, Founder, Mortgage Banker"></div>
+    <div class="field-wrap"><label class="field-label">NMLS #</label><input class="fi" value="${f.nmls||''}" oninput="setF('nmls',this.value)" placeholder="35163"></div>
+    <div class="form-row">
+      <div class="field-wrap"><label class="field-label">Email</label><input class="fi" type="email" value="${f.email||''}" oninput="setF('email',this.value)" placeholder="email@company.com"></div>
+      <div class="field-wrap"><label class="field-label">Phone</label><input class="fi" value="${f.phone||''}" oninput="setF('phone',this.value)" placeholder="404-395-1102"></div>
+    </div>
+    <div class="field-wrap"><label class="field-label">Apply URL (Floify)</label><input class="fi" value="${f.apply_url||''}" oninput="setF('apply_url',this.value)" placeholder="https://name.floify.com"></div>
+    <div class="field-wrap">
+      <label class="field-label">Social Media</label>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div>
+          <input class="fi" value="${f.instagram_url||''}" oninput="setF('instagram_url',this.value)" placeholder="https://instagram.com/username" style="flex:1;font-size:11px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:6px;background:#0077b5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div>
+          <input class="fi" value="${f.linkedin_url||''}" oninput="setF('linkedin_url',this.value)" placeholder="https://linkedin.com/in/username" style="flex:1;font-size:11px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:6px;background:#1877f2;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+          <input class="fi" value="${f.facebook_url||''}" oninput="setF('facebook_url',this.value)" placeholder="https://facebook.com/username" style="flex:1;font-size:11px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.733-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg></div>
+          <input class="fi" value="${f.twitter_url||''}" oninput="setF('twitter_url',this.value)" placeholder="https://x.com/username" style="flex:1;font-size:11px">
+        </div>
+      </div>
+    </div>
+    <div class="field-wrap"><label class="field-label">Start Date</label><input class="fi" type="date" value="${f.start_date||''}" oninput="setF('start_date',this.value)" style="color-scheme:dark"></div>`;
+
+  // ── BIO SECTION ──────────────────────────────────────────────────────────
+  const bioContent = `
+    <div class="field-wrap">
+      <label class="field-label">Background</label>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button type="button" data-action="setbiodark" data-val="false" style="flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${!(f.bio_dark_mode)?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
+          ☀️ Light <span style="font-size:9px;display:block;font-weight:400;opacity:0.6;margin-top:2px">White bg, dark text</span>
+        </button>
+        <button type="button" data-action="setbiodark" data-val="true" style="flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${f.bio_dark_mode?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
+          🌙 Dark <span style="font-size:9px;display:block;font-weight:400;opacity:0.6;margin-top:2px">${state.coId==='highland'?'Navy':'Dark Red'} bg, white text</span>
+        </button>
+      </div>
+      <label class="field-label" style="margin-bottom:8px">Animated Shape</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${[['rings','⭕','Rings'],['blobs','☁️','Blobs'],['triangles','▲','Tris'],['snowflakes','❄️','Snow']].map(([val,icon,lbl])=>`<button type="button" data-action="setbioshape" data-val="${val}" style="flex:1;padding:8px 4px;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'};text-align:center"><div style="font-size:16px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join('')}
+      </div>
+    </div>
+    <div class="field-wrap"><label class="field-label">Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>`;
+
+  // ── AWARDS SECTION ───────────────────────────────────────────────────────
+  const awardsBadge = state.formAwards.length ? `${state.formAwards.length}` : '';
+  const awardsContent = `
+    ${ats.length===0?`<div style="padding:10px 12px;background:rgba(255,165,0,0.04);border:1px solid rgba(255,165,0,0.15);border-radius:7px;font-size:11px;color:rgba(255,165,0,0.5);margin-bottom:10px">No award types yet — go to Settings first.</div>`:''}
+    ${awardsHtml}
+    <button data-action="addaward" style="width:100%;padding:8px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(200,220,240,0.45);font-size:11px;margin-top:4px">+ Add Award</button>`;
+
+  // ── TEAMS SECTION ────────────────────────────────────────────────────────
+  const teamsBadge = state.formTeams.length ? `${state.formTeams.length}` : '';
+  const teamsContent = state.teams.length === 0
+    ? `<div style="font-size:12px;color:rgba(200,220,240,0.3);padding:6px 0">No teams yet — create them in Settings.</div>`
+    : `<div style="display:flex;flex-direction:column;gap:8px">
+        ${state.teams.map(t => {
+          const isMember = state.formTeams.includes(t.id);
+          const memberCount = (t.team_members||[]).length;
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:${isMember?'rgba(255,255,255,0.07)':'rgba(255,255,255,0.02)'};border:1px solid ${isMember?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'};transition:all .2s">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:rgba(220,235,255,${isMember?'0.9':'0.4'})">${t.name}</div>
+              <div style="font-size:11px;color:rgba(200,220,240,0.3);margin-top:2px">${memberCount} member${memberCount!==1?'s':''}</div>
+            </div>
+            <button type="button" data-action="toggleteam" data-val="${t.id}" style="padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;${isMember?'background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.25);color:rgba(255,120,120,0.8)':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(200,220,240,0.5)'}">
+              ${isMember ? '− Remove' : '+ Join'}
+            </button>
+          </div>`;
+        }).join('')}
+      </div>`;
+
   panel.innerHTML = `
     <button class="back-btn" data-action="goback">← BACK</button>
     <div class="page-title">${isEdit?'✏ Edit Agent File':'🛸 Abduction Protocol'}</div>
     ${!isEdit?`<div class="abduction-notice">🛸 Abduction protocol initiated. Gather the agent's intel — photo, licensing, bio, and contact data. Once transmitted, their profile goes live instantly.</div>`:''}
-    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
       <span class="field-label" style="margin:0;white-space:nowrap">Agent Type</span>
       <button type="button" data-action="setformtype" data-val="sales" style="padding:6px 16px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${state.empType==='sales'?'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(220,235,255,0.9)':'background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(200,220,240,0.3)'}">Sales</button>
       <button type="button" data-action="setformtype" data-val="ops" style="padding:6px 16px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${state.empType==='ops'?'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(220,235,255,0.9)':'background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(200,220,240,0.3)'}">Ops</button>
     </div>
-    <div class="form-wrap">
-
-      <!-- ══ HERO SECTION ══ -->
-      <div style="font-size:10px;font-weight:700;color:rgba(200,220,240,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.07)">🎯 Hero Section</div>
-
-      <!-- Hero Banner -->
-      <div class="field-wrap" style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,0.02)">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="(function(el){var b=document.getElementById('hero-picker-body');b.style.display=b.style.display==='none'?'block':'none';el.querySelector('.sa').textContent=b.style.display==='none'?'▸':'▾'})(this)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="field-label" style="margin:0;cursor:pointer">Hero Banner Image</span>
-            ${(f.hero_image_url||f._heroCropDataUrl)?'<span style="font-size:9px;font-weight:700;color:rgba(100,220,130,0.9);background:rgba(100,220,130,0.1);border:1px solid rgba(100,220,130,0.25);border-radius:4px;padding:1px 6px">✓ SET</span>':''}          </div>
-          <span class="sa" style="color:rgba(200,220,240,0.3);font-size:11px">▸</span>
-        </div>
-        <div id="hero-picker-body" style="display:none;margin-top:10px">
-          <div style="font-size:10px;color:rgba(200,220,240,0.3);margin-bottom:8px;line-height:1.6">Recommended: <strong style="color:rgba(200,220,240,0.55)">1920×1080px</strong> · JPG or WebP · under 5MB</div>
-          ${(f.hero_image_url&&!f._heroCropDataUrl) ? renderFocalPicker(f.hero_image_url,'hero_focal_x','hero_focal_y','16/9')
-            .replace('</div>', '<div style="position:absolute;top:6px;right:6px;display:flex;gap:4px"><button type="button" onclick="event.stopPropagation();openHeroCrop(\''+f.hero_image_url+'\')" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button><button type="button" data-action="clearhero" style="padding:2px 8px;border-radius:4px;background:rgba(255,50,50,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">✕ Clear</button></div></div>') : ''}
-          ${f._heroCropDataUrl ? renderFocalPicker(f._heroCropDataUrl,'hero_focal_x','hero_focal_y','16/9')
-            .replace('</div>', '<div style="position:absolute;top:6px;right:6px"><button type="button" onclick="event.stopPropagation();openHeroCrop(state.formData._heroCropDataUrl)" style="padding:2px 8px;border-radius:4px;background:rgba(43,191,239,0.5);border:none;color:#fff;font-size:10px;cursor:pointer">⬡ Re-crop</button></div></div>') : ''}
-          <div style="border:1.5px dashed rgba(255,255,255,0.12);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);margin-bottom:8px" onclick="document.getElementById('hero-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.3)'" ondragleave="this.style.borderColor='rgba(255,255,255,0.12)'" ondrop="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.12)';handleHeroFile(event.dataTransfer.files[0])">
-            <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="handleHeroFile(this.files[0])">
-            <div style="font-size:11px;color:rgba(200,220,240,0.5)">📁 Click or drag to upload</div>
-          </div>
-          ${state.stockPhotos.length > 0 ? `
-          <input id="hero-search" placeholder="🔍 Search by name..." oninput="state.heroSearch=this.value;renderMain()" value="${state.heroSearch||''}" style="width:100%;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(220,235,255,0.8);font-size:10px;outline:none;margin-bottom:6px">
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;max-height:180px;overflow-y:auto">
-            ${state.stockPhotos.filter(p=>!state.heroSearch||p.label.toLowerCase().includes((state.heroSearch||'').toLowerCase())).map(p=>`
-            <div style="position:relative;border-radius:5px;overflow:hidden;aspect-ratio:16/9;border:2px solid ${(f.hero_image_url===p.url&&!f._heroCropDataUrl)?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.04)'};transition:border .15s">
-              <div data-action="pickhero" data-val="${p.url}" style="width:100%;height:100%;cursor:pointer"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover;pointer-events:none"></div>
-              <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.65);padding:2px 4px">
-                <input value="${p.label||''}" placeholder="Name..." onclick="event.stopPropagation()" onblur="renameStockPhoto('${p.id}',this.value)" style="width:100%;background:transparent;border:none;color:rgba(255,255,255,0.7);font-size:9px;outline:none">
-              </div>
-            </div>`).join('')}
-          </div>` : `<div style="font-size:10px;color:rgba(200,220,240,0.2);margin-bottom:8px">No stock photos yet — add in Settings.</div>`}
-          <input class="fi" value="${f._heroCropDataUrl?'(cropped — save to upload)':(f.hero_image_url||'')}" oninput="setF('hero_image_url',this.value)" placeholder="Or paste a URL" style="font-size:11px">
-        </div>
-      </div>
-
-      <!-- Hero Logo -->
-      <div class="field-wrap">
-        <label class="field-label">Hero Logo ${f.hero_logo_url?'<span style="font-size:9px;font-weight:700;color:rgba(100,220,130,0.9);background:rgba(100,220,130,0.1);border:1px solid rgba(100,220,130,0.25);border-radius:4px;padding:1px 6px;margin-left:6px">✓ SET</span>':''}</label>
-        ${f.hero_logo_url ? `<div style="height:40px;margin-bottom:8px;display:flex;align-items:center;gap:10px"><div style="height:36px;padding:5px 10px;border-radius:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center"><img src="${f.hero_logo_url}" style="height:24px;object-fit:contain" onerror="this.style.display='none'"></div><button type="button" data-action="clearlogourl" style="padding:4px 9px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.6);font-size:11px;cursor:pointer">✕ Clear</button></div>` : ''}
-        <button type="button" data-action="togglepicker" data-val="logo" style="width:100%;padding:7px 12px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(200,220,240,0.45);font-size:11px;cursor:pointer;text-align:left;margin-bottom:${state.showLogoPicker?'8px':'0'}">
-          🏷 ${state.showLogoPicker ? '▲ Hide logo options' : '▼ Choose logo for hero'}
-        </button>
-        ${state.showLogoPicker ? `
-        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px">
-          <div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${state.coId==='highland'?'Highland':'Valor'} Logos</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px">
-            ${(LOGOS[state.coId]||[]).map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
-          </div>
-          ${(()=>{const mt=state.teams.filter(t=>state.formTeams.includes(t.id));if(!mt.length)return '';const tl=state.teamLogos.filter(l=>mt.some(t=>String(l.team_id)===String(t.id)));if(!tl.length)return `<div style="font-size:10px;color:rgba(200,220,240,0.25)">${mt.map(t=>t.name).join(', ')} — no logos yet. Edit team in Settings.</div>`;return `<div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${mt.length===1?mt[0].name+' Logos':'Team Logos'}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tl.map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border .15s"><img src="${l.url}" style="height:22px;max-width:70px;object-fit:contain;pointer-events:none" onerror="this.style.display='none'"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label||'Logo'}</span></div>`).join('')}</div>`})()}
-          <div style="display:flex;gap:6px">
-            ${['auto','light','dark','none'].map(m=>`<button type="button" data-action="setherologomode" data-val="${m}" style="padding:4px 10px;border-radius:5px;font-size:10px;cursor:pointer;${(f.hero_logo_mode||'auto')===m?'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(220,235,255,0.9)':'background:transparent;border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.3)'}">${m.charAt(0).toUpperCase()+m.slice(1)}</button>`).join('')}
-          </div>
-          <button type="button" data-action="clearlogourl" style="padding:5px 10px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.55);font-size:10px;cursor:pointer;align-self:flex-start">✕ No logo</button>
-        </div>` : ''}
-      </div>
-
-      <!-- Headshot -->
-      <div class="field-wrap">
-        <label class="field-label">Headshot Photo</label>
-        ${f.photo_url ? `
-        <div style="position:relative;width:min(300px,100%);margin-bottom:6px">
-          ${renderFocalPicker(f.photo_url,'photo_focal_x','photo_focal_y','1/1')}
-          <div style="position:absolute;bottom:30px;left:0;right:0;text-align:center;pointer-events:none">
-            <div style="width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(255,255,255,0.2);position:absolute;inset:0;border-radius:0;pointer-events:none"></div>
-          </div>
-          <div onclick="document.getElementById('photo-file-input').click()" style="position:absolute;top:6px;left:6px;padding:3px 8px;border-radius:5px;background:rgba(0,0,0,0.5);font-size:10px;color:rgba(255,255,255,0.7);cursor:pointer">📷 Replace</div>
-        </div>` : `
-        <div id="photo-upload-zone" style="border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02);transition:all .2s"
-          onclick="document.getElementById('photo-file-input').click()"
-          ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.35)';this.style.background='rgba(255,255,255,0.05)'"
-          ondragleave="this.style.borderColor='';this.style.background=''"
-          ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handlePhotoFile(event.dataTransfer.files[0])">
-          <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:24px">👽</div>
-          <div style="font-size:11px;color:rgba(200,220,240,0.4);font-weight:500">Click or drag to upload</div>
-        </div>`}
-        <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(this.files[0])">
-        <input class="fi" id="f-photo_url" value="${f.photo_url&&!f._cropDataUrl?f.photo_url:f._cropDataUrl?'(cropped — will upload on save)':''}" oninput="setF('photo_url',this.value);updatePhotoPreview(this.value);if(this.value)injectCropButton();" placeholder="Or paste a URL" style="margin-top:6px;font-size:11px;color:rgba(200,220,240,0.5)">
-      </div>
-
-      <!-- Hero Tagline -->
-      <div class="field-wrap"><label class="field-label">Hero Tagline</label><input class="fi" value="${f.tagline||''}" oninput="setF('tagline',this.value)" placeholder="20+ years guiding Georgians home..."></div>
-
-      <!-- Hero Gradient Color -->
-      <div class="field-wrap">
-        <label class="field-label">Hero Gradient Color <span style="font-size:10px;color:rgba(200,220,240,0.3);font-weight:400;text-transform:none;letter-spacing:0">defaults to ${state.coId==='highland'?'dark navy':'dark red'} for ${state.coId==='highland'?'Highland':'Valor'}</span></label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="color" id="hero-grad-color" value="${f.hero_gradient_color||(state.coId==='highland'?'#0d1f2d':'#1a0808')}" style="width:44px;height:36px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:none;cursor:pointer;padding:2px" oninput="setF('hero_gradient_color',this.value);document.getElementById('hero-grad-hex').value=this.value">
-          <input class="fi" id="hero-grad-hex" value="${f.hero_gradient_color||''}" placeholder="${state.coId==='highland'?'#0d1f2d (Highland default)':'#1a0808 (Valor default)'}" style="flex:1" oninput="setF('hero_gradient_color',this.value);if(this.value.match(/^#[0-9a-f]{6}$/i))document.getElementById('hero-grad-color').value=this.value">
-          ${f.hero_gradient_color?`<button type="button" onclick="setF('hero_gradient_color','');document.getElementById('hero-grad-hex').value='';renderMain()" style="padding:4px 9px;border-radius:6px;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.15);color:rgba(255,100,100,0.6);font-size:11px;cursor:pointer">✕</button>`:''}
-        </div>
-        <div style="margin-top:8px;border-radius:8px;overflow:hidden;height:36px;position:relative">
-          <div style="position:absolute;inset:0;background:linear-gradient(to right,${f.hero_gradient_color||(state.coId==='highland'?'#0d1f2d':'#1a0808')},transparent)"></div>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 12px"><span style="font-size:10px;color:rgba(255,255,255,0.5)">← Gradient preview</span></div>
-        </div>
-      </div>
-
-      <!-- ══ DETAILS ══ -->
-      <div class="sec-div"></div>
-      <div style="font-size:10px;font-weight:700;color:rgba(200,220,240,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.07)">📋 Agent Details</div>
-      <div class="form-row">
-        <div class="field-wrap"><label class="field-label">First Name</label><input class="fi" id="f-first_name" value="${f.first_name||''}" oninput="setF('first_name',this.value)" placeholder="Mark"></div>
-        <div class="field-wrap"><label class="field-label">Last Name</label><input class="fi" id="f-last_name" value="${f.last_name||''}" oninput="setF('last_name',this.value)" placeholder="Milam"></div>
-      </div>
-      <div class="field-wrap"><label class="field-label">URL Slug</label><input class="fi" value="${f.slug||''}" oninput="setF('slug',this.value)" placeholder="mark-milam"></div>
-      <div class="field-wrap"><label class="field-label">Title(s) — comma separated</label><input class="fi" value="${f.title||''}" oninput="setF('title',this.value)" placeholder="CEO, Founder, Mortgage Banker"></div>
-      <div class="field-wrap"><label class="field-label">NMLS #</label><input class="fi" value="${f.nmls||''}" oninput="setF('nmls',this.value)" placeholder="35163"></div>
-      <div class="form-row">
-        <div class="field-wrap"><label class="field-label">Email</label><input class="fi" type="email" value="${f.email||''}" oninput="setF('email',this.value)" placeholder="email@company.com"></div>
-        <div class="field-wrap"><label class="field-label">Phone</label><input class="fi" value="${f.phone||''}" oninput="setF('phone',this.value)" placeholder="404-395-1102"></div>
-      </div>
-      <div class="field-wrap"><label class="field-label">Apply URL</label><input class="fi" value="${f.apply_url||''}" oninput="setF('apply_url',this.value)" placeholder="https://name.floify.com"></div>
-      <div class="field-wrap">
-        <label class="field-label">Social Media</label>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-            </div>
-            <input class="fi" value="${f.instagram_url||''}" oninput="setF('instagram_url',this.value)" placeholder="https://instagram.com/username" style="flex:1;font-size:11px">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:6px;background:#0077b5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            </div>
-            <input class="fi" value="${f.linkedin_url||''}" oninput="setF('linkedin_url',this.value)" placeholder="https://linkedin.com/in/username" style="flex:1;font-size:11px">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:6px;background:#1877f2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </div>
-            <input class="fi" value="${f.facebook_url||''}" oninput="setF('facebook_url',this.value)" placeholder="https://facebook.com/username" style="flex:1;font-size:11px">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.733-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
-            </div>
-            <input class="fi" value="${f.twitter_url||''}" oninput="setF('twitter_url',this.value)" placeholder="https://x.com/username" style="flex:1;font-size:11px">
-          </div>
-        </div>
-      </div>
-      <div class="field-wrap"><label class="field-label">Start Date</label><input class="fi" type="date" value="${f.start_date||''}" oninput="setF('start_date',this.value)" style="color-scheme:dark"></div>
-
-      <!-- ══ BIO ══ -->
-      <div class="sec-div"></div>
-      <div style="font-size:10px;font-weight:700;color:rgba(200,220,240,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.07)">📝 Bio</div>
-      <div class="field-wrap">
-        <label class="field-label">Bio Background</label>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button type="button" data-action="setbiodark" data-val="false" style="flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${!(f.bio_dark_mode)? 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
-            ☀️ Light <span style="font-size:9px;display:block;font-weight:400;opacity:0.6;margin-top:2px">White bg, dark text</span>
-          </button>
-          <button type="button" data-action="setbiodark" data-val="true" style="flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;${f.bio_dark_mode? 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
-            🌙 Dark <span style="font-size:9px;display:block;font-weight:400;opacity:0.6;margin-top:2px">${state.coId==='highland'?'Navy':'Dark Red'} bg, white text</span>
-          </button>
-        </div>
-        <label class="field-label" style="margin-bottom:8px">Animated Background Shape</label>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-          ${[['rings','⬤','Rings'],['blobs','☁️','Blobs'],['triangles','▲','Triangles'],['snowflakes','❄️','Snowflakes']].map(([val,icon,label])=>`
-          <button type="button" data-action="setbioshape" data-val="${val}" style="padding:8px 4px;border-radius:8px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'}">
-            <div style="font-size:18px;margin-bottom:3px">${icon}</div>${label}
-          </button>`).join('')}
-        </div>
-      </div>
-      <div class="field-wrap"><label class="field-label">Agent Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>
-      <div class="sec-div"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <label class="field-label" style="margin:0">Commendations & Awards</label>
-        <button data-action="addaward" style="padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:rgba(200,220,240,0.45);font-size:11px">+ Add</button>
-      </div>
-      ${ats.length===0?`<div style="padding:10px 12px;background:rgba(255,165,0,0.04);border:1px solid rgba(255,165,0,0.15);border-radius:7px;font-size:11px;color:rgba(255,165,0,0.5)">No award types for this company yet. Go to Settings first.</div>`:''}
-      ${awardsHtml}
-      <div class="sec-div"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <label class="field-label" style="margin:0">Team Assignments</label>
-      </div>
-      ${state.teams.length === 0
-        ? `<div style="font-size:12px;color:rgba(200,220,240,0.3);padding:10px 0">No teams yet — create them in Settings.</div>`
-        : `<div style="display:flex;flex-direction:column;gap:8px">
-          ${state.teams.map(t => {
-            const isMember = state.formTeams.includes(t.id);
-            const memberCount = (t.team_members||[]).length;
-            return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:${isMember?'rgba(255,255,255,0.07)':'rgba(255,255,255,0.02)'};border:1px solid ${isMember?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'};transition:all .2s">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:rgba(220,235,255,${isMember?'0.9':'0.4'})">${t.name}</div>
-                <div style="font-size:11px;color:rgba(200,220,240,0.3);margin-top:2px">${memberCount} member${memberCount!==1?'s':''}</div>
-              </div>
-              <button type="button" data-action="toggleteam" data-val="${t.id}" style="padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;${isMember?'background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.25);color:rgba(255,120,120,0.8)':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(200,220,240,0.5)'}">
-                ${isMember ? '− Remove' : '+ Join'}
-              </button>
-            </div>`;
-          }).join('')}
-        </div>`
-      }
-      <div class="sec-div"></div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="transmit-btn" id="transmit-btn" data-action="transmit">🛸 Transmit & Go Live</button>
-        ${isEdit?`<button class="remove-agent-btn" data-action="delete">Remove</button>`:''}
-      </div>
+    ${acc('hero','🎯','Hero',heroBadge,heroContent)}
+    ${acc('details','📋','Details','',detailsContent)}
+    ${acc('bio','📝','Bio & Style','',bioContent)}
+    ${acc('awards','🏅','Awards',awardsBadge,awardsContent)}
+    ${acc('teams','👥','Teams',teamsBadge,teamsContent)}
+    <div style="display:flex;gap:10px;margin-top:12px;padding-top:4px">
+      <button class="transmit-btn" id="transmit-btn" data-action="transmit">🛸 Transmit & Go Live</button>
+      ${isEdit?`<button class="remove-agent-btn" data-action="delete">Remove</button>`:''}
     </div>`;
-  // Inject crop button immediately if photo already set
+
   if (state.formData.photo_url || state.formData._cropDataUrl) {
     setTimeout(() => injectCropButton(), 10);
   }
 }
+
 
 function setF(key, val) { state.formData[key] = val; }
 function addAward() {
