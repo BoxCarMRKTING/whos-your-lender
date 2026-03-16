@@ -2517,7 +2517,8 @@ function renderSettings(panel) {
     var _defs=[["equity", "Equity Path", true], ["refi", "Refi Cost of Waiting", true], ["price-credits", "Price vs Credits", false], ["affordability", "Affordability", false], ["payment", "Payment Calculator", false], ["rent-buy", "Rent vs Buy", false]];var _o='<div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07)"><div style="font-size:11px;font-weight:700;color:rgba(200,220,240,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">🧮 CALCULATORS</div><p style="font-size:12px;color:rgba(200,220,240,0.4);margin-bottom:12px;line-height:1.5">Each slot holds the complete standalone HTML for one calculator.</p>';
     _defs.forEach(function(d){var id=d[0],name=d[1],ok=d[2];var so=_sd[id]||{};var val=typeof so==='string'?so:(so.html||'');var isOn=typeof so==='object'?(so.enabled!==false):(val.length>0);var sb2=val?' <span style="font-size:9px;color:rgba(100,220,130,0.9);border:1px solid rgba(100,220,130,0.3);border-radius:4px;padding:1px 5px">✓</span>':'';var ob=(!isOn&&val)?' <span style="font-size:9px;color:rgba(255,120,80,0.9);border:1px solid rgba(255,80,50,0.3);border-radius:4px;padding:1px 5px">OFF</span>':'';var cb=ok?'':' <span style="font-size:9px;color:rgba(200,220,240,0.3);border:1px solid rgba(255,255,255,0.07);border-radius:4px;padding:1px 5px">Soon</span>';var esc=val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');var co=state.coId;
     _o+='<div style="margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:9px;overflow:hidden"><div style="display:flex;align-items:center;padding:8px 13px;gap:8px"><div style="flex:1;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="var n=this.parentElement.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\'"><span style="font-size:12px;font-weight:600;color:rgba(200,220,240,0.85)">'+name+sb2+ob+cb+'</span><span style="color:rgba(200,220,240,0.3);font-size:11px">▾</span></div><label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0"><input type="checkbox"'+(isOn?' checked':'')+' onchange="toggleCalcSlot(\''+co+'\',\''+id+'\',this.checked)" style="width:14px;height:14px;accent-color:#3db9ec;cursor:pointer"><span style="font-size:11px;color:rgba(200,220,240,0.35)">'+(isOn?'On':'Off')+'</span></label></div>';
-    _o+='<div style="display:none;padding:0 13px 13px"><textarea id="calc-slot-'+id+'" rows="5" placeholder="Paste complete calculator HTML..." style="width:100%;background:#0f1a20;border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:9px 11px;font-size:11px;font-family:monospace;color:rgba(200,220,240,0.8);resize:vertical;outline:none;box-sizing:border-box;display:block">'+esc+'</textarea><div style="display:flex;gap:6px;margin-top:7px"><button onclick="saveCalcHtml(\''+co+'\',\''+id+'\',event)" style="padding:5px 13px;background:#3db9ec;color:#0a1a22;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">💾 Save</button><button onclick="clearCalcSlot(\''+co+'\',\''+id+'\')" style="padding:5px 11px;background:rgba(255,255,255,0.04);color:rgba(200,220,240,0.4);border:1px solid rgba(255,255,255,0.07);border-radius:6px;font-size:11px;cursor:pointer">✕</button></div></div></div>';});
+    var _accOpen=(val===''&&ok)?'block':'none';
+    _o+='<div style="display:'+_accOpen+';padding:0 13px 13px"><textarea id="calc-slot-'+id+'" rows="5" placeholder="Paste complete calculator HTML..." style="width:100%;background:#0f1a20;border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:9px 11px;font-size:11px;font-family:monospace;color:rgba(200,220,240,0.8);resize:vertical;outline:none;box-sizing:border-box;display:block">'+esc+'</textarea><div style="display:flex;gap:6px;margin-top:7px"><button onclick="saveCalcHtml(\''+co+'\',\''+id+'\',event)" style="padding:5px 13px;background:#3db9ec;color:#0a1a22;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">💾 Save</button><button onclick="clearCalcSlot(\''+co+'\',\''+id+'\')" style="padding:5px 11px;background:rgba(255,255,255,0.04);color:rgba(200,220,240,0.4);border:1px solid rgba(255,255,255,0.07);border-radius:6px;font-size:11px;cursor:pointer">✕</button></div></div></div>';});
     _o+='</div>';return _o;})();
 
   panel.innerHTML = html;
@@ -2895,7 +2896,7 @@ function renderForm(panel) {
   const previewSection = document.createElement('div');
   previewSection.style.cssText = 'margin:0 0 16px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)';
   previewSection.innerHTML = '<div style="font-size:11px;font-weight:700;color:rgba(200,220,240,0.4);letter-spacing:2px;text-transform:uppercase;padding:10px 14px;display:flex;align-items:center;justify-content:space-between"><span>👁 LIVE PREVIEW</span><a href="https://highlandmtg.com/'+previewSlug+'" target="_blank" style="font-size:10px;color:#3db9ec;text-decoration:none">Open ↗</a></div><iframe src="https://highlandmtg.com/'+previewSlug+'" style="width:100%;height:480px;border:none;background:#fff" sandbox="allow-scripts allow-same-origin" title="Preview"><\/iframe>';
-  panel.insertBefore(previewSection, panel.firstChild);
+  panel.appendChild(previewSection);
             const memberCount = (t.team_members||[]).length;
             return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:${isMember?'rgba(255,255,255,0.07)':'rgba(255,255,255,0.02)'};border:1px solid ${isMember?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'};transition:all .2s">
               <div>
@@ -2952,8 +2953,8 @@ function renderCode(panel) {
   if (!emp) { state.view='list'; renderMain(); return; }
   const awards = state.currentAwards || [];
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
-  const code = state.codeTab==='hero' ? genHeroScript(emp) : state.codeTab==='team' ? genTeamScript(emp) : genCombinedScript(emp);
-  const codeLabel = state.codeTab==='hero' ? 'Hero Script Tag' : state.codeTab==='team' ? 'Team Script Tag' : 'Hero + Bio Script Tag';
+  const code = genCombinedScript(emp);
+  const codeLabel = 'Profile Script';
 
   panel.innerHTML = `
     <button class="back-btn" data-action="back" style="margin-bottom:14px">← All Agents</button>
@@ -2970,10 +2971,8 @@ function renderCode(panel) {
       <span class="status-dot"></span>
       <span><strong style="color:rgba(220,235,255,0.9)">Live sync active.</strong> Paste once — every Save updates Squarespace instantly. No re-pasting ever.</span>
     </div>
-    <div class="code-tabs">
-      <button class="code-tab ${state.codeTab==='hero'?'active':''}" data-action="codetab" data-val="hero">🎯 Hero Script</button>
-      <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Hero + Bio Script</button>
-      <button class="code-tab ${state.codeTab==='team'?'active':''}" data-action="codetab" data-val="team">👥 Team Script</button>
+    <div style="margin-bottom:10px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(200,220,240,0.4)">📋 PROFILE SCRIPT</span>
     </div>
     <div style="padding:9px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:11px;color:rgba(200,220,240,0.28);margin-bottom:10px;line-height:1.6">
       <strong style="color:rgba(200,220,240,0.55)">Paste once</strong> into a Squarespace Code Block. Done forever.
