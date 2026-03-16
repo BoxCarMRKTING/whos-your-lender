@@ -1,5 +1,6 @@
 <!D
-  sc += '<div id="wyl-calc" style="display:none"></div>\n';OCTYPE html>
+  sc += '<div id="wyl-calc" style="display:none"></div>\n';
+  sc += '<div id="wyl-cta" style="display:none"></div>\n';OCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2085,7 +2086,7 @@ function genCombinedScript(emp) {
   sc += '    if(e.apply_url){var hbtn=document.createElement("a");hbtn.id="wyl-btn";hbtn.href=e.apply_url;hbtn.target="_blank";hbtn.style.cssText="position:relative;z-index:1";hbtn.textContent="Apply With "+(e.first_name||"");heroEl.appendChild(hbtn);}\n';
   sc += '\n';
   sc += '    // BIO\n';
-  sc += '    var isDark=cfg.dark;\n';
+  sc += '    var isDark=(e.bio_dark_mode!=null)?e.bio_dark_mode:cfg.dark;\n';
   sc += '    var bg=isDark?cfg.darkBg:"#ffffff";\n';
   sc += '    var accent=isDark?cfg.darkAccent:co.accent;\n';
   sc += '    var accentLight=isDark?"rgba(255,255,255,0.08)":co.accent_light;\n';
@@ -2355,6 +2356,64 @@ function genCombinedScript(emp) {
   sc += '      if(_cdn.length){var _loaded=0;_cdn.forEach(function(old){var ns=document.createElement("script");ns.src=old.src;ns.onload=function(){_loaded++;if(_loaded===_cdn.length)_runInline();};ns.onerror=function(){_loaded++;if(_loaded===_cdn.length)_runInline();};old.parentNode.replaceChild(ns,old);});}else{_runInline();}\n';
   sc += '    })();\n';
   sc += '\n';
+  sc += '    // ── CTA SECTION ─────────────────────────────────────────────────────\n';
+  sc += '    (function(){\n';
+  sc += '      var ctaEl=document.getElementById("wyl-cta");\n';
+  sc += '      if(!ctaEl||!e.apply_url)return;\n';
+  sc += '      var ctaDark=!isDark;\n';
+  sc += '      var ctaBg=ctaDark?(C==="valor"?"#1a0505":"#0d1f2d"):"#f8fafc";\n';
+  sc += '      var ctaAccent=ctaDark?co.accent:co.accent;\n';
+  sc += '      ctaEl.style.display="block";\n';
+  sc += '      ctaEl.style.cssText="background:"+ctaBg+";width:100vw;margin-left:calc(50% - 50vw);box-sizing:border-box;padding:80px max(24px,calc((100vw - 1400px)/2 + 24px));position:relative;overflow:hidden";\n';
+  sc += '      // Animated background dots\n';
+  sc += '      var ctaStyle=document.createElement("style");\n';
+  sc += '      ctaStyle.textContent="@keyframes wyl-pulse{0%,100%{transform:scale(1);opacity:0.15}50%{transform:scale(1.08);opacity:0.28}}@keyframes wyl-drift{0%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(20px,-15px) rotate(60deg)}66%{transform:translate(-10px,20px) rotate(120deg)}100%{transform:translate(0,0) rotate(180deg)}}";\n';
+  sc += '      document.head.appendChild(ctaStyle);\n';
+  sc += '      // Orb decorations\n';
+  sc += '      [\n';
+  sc += '        {w:400,h:400,t:"-80px",r:"-60px",op:ctaDark?0.18:0.12,delay:"0s"},\n';
+  sc += '        {w:300,h:300,b:"40px",l:"-40px",op:ctaDark?0.14:0.08,delay:"2.5s"},\n';
+  sc += '        {w:200,h:200,t:"50%",l:"40%",op:ctaDark?0.10:0.06,delay:"1.2s"},\n';
+  sc += '      ].forEach(function(o){\n';
+  sc += '        var orb=document.createElement("div");\n';
+  sc += '        var s="position:absolute;border-radius:50%;background:radial-gradient(circle,"+ctaAccent+" 0%,transparent 70%);animation:wyl-pulse 6s ease-in-out "+o.delay+" infinite,wyl-drift 18s linear infinite;pointer-events:none;z-index:0;";\n';
+  sc += '        s+="width:"+o.w+"px;height:"+o.h+"px;";\n';
+  sc += '        if(o.t)s+="top:"+o.t+";";if(o.b)s+="bottom:"+o.b+";";\n';
+  sc += '        if(o.r)s+="right:"+o.r+";";if(o.l)s+="left:"+o.l+";";\n';
+  sc += '        s+="opacity:"+o.op+";";\n';
+  sc += '        orb.style.cssText=s;ctaEl.appendChild(orb);\n';
+  sc += '      });\n';
+  sc += '      var inner=document.createElement("div");\n';
+  sc += '      inner.style.cssText="max-width:800px;margin:0 auto;text-align:center;position:relative;z-index:1";\n';
+  sc += '      var ctaPrimary=ctaDark?"rgba(255,255,255,0.95)":"#1a2332";\n';
+  sc += '      var ctaSub=ctaDark?"rgba(200,220,240,0.55)":"#6b7c93";\n';
+  sc += '      // Eyebrow\n';
+  sc += '      var eyebrow=document.createElement("div");\n';
+  sc += '      eyebrow.style.cssText="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:"+ctaAccent+";margin-bottom:16px";\n';
+  sc += '      eyebrow.textContent="Ready to Move Forward?";\n';
+  sc += '      // Headline\n';
+  sc += '      var h2=document.createElement("h2");\n';
+  sc += '      h2.style.cssText="font-size:clamp(32px,5vw,56px);font-weight:900;color:"+ctaPrimary+";line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px";\n';
+  sc += '      h2.innerHTML="Start Your Application<br><span style=\'color:"+ctaAccent+"\'>with "+e.first_name+"</span>";\n';
+  sc += '      // Sub\n';
+  sc += '      var sub=document.createElement("p");\n';
+  sc += '      sub.style.cssText="font-size:18px;color:"+ctaSub+";line-height:1.6;margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto";\n';
+  sc += '      sub.textContent="The fastest way home starts here. Secure, simple, and guided every step of the way.";\n';
+  sc += '      // CTA button\n';
+  sc += '      var ctaBtn=document.createElement("a");\n';
+  sc += '      ctaBtn.href=e.apply_url;ctaBtn.target="_blank";\n';
+  sc += '      ctaBtn.style.cssText="display:inline-flex;align-items:center;gap:12px;padding:18px 40px;border-radius:60px;background:"+ctaAccent+";color:#fff;font-size:16px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;box-shadow:0 8px 40px rgba(0,0,0,0.3),0 0 0 0 "+ctaAccent+";transition:transform .2s,box-shadow .2s";\n';
+  sc += '      ctaBtn.innerHTML="Apply Now <svg width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><line x1=\'5\' y1=\'12\' x2=\'19\' y2=\'12\'/><polyline points=\'12 5 19 12 12 19\'/></svg>";\n';
+  sc += '      ctaBtn.onmouseover=function(){this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 16px 50px rgba(0,0,0,0.35),0 0 30px \'+ctaAccent;};\n';
+  sc += '      ctaBtn.onmouseout=function(){this.style.transform=\'\';this.style.boxShadow=\'0 8px 40px rgba(0,0,0,0.3),0 0 0 0 \'+ctaAccent;};\n';
+  sc += '      // NMLS disclaimer\n';
+  sc += '      var disc=document.createElement("div");\n';
+  sc += '      disc.style.cssText="font-size:11px;color:"+ctaSub+";margin-top:24px;opacity:0.6";\n';
+  sc += '      disc.textContent="NMLS #"+(e.nmls||"")+" · Equal Housing Lender";\n';
+  sc += '      inner.appendChild(eyebrow);inner.appendChild(h2);inner.appendChild(sub);inner.appendChild(ctaBtn);inner.appendChild(disc);\n';
+  sc += '      ctaEl.appendChild(inner);\n';
+  sc += '    })();\n';
+  sc += '\n';
   sc += '  }).catch(function(err){console.warn("WYL combined:",err);if(heroEl)heroEl.innerHTML=\'<div style="color:rgba(255,255,255,0.5);padding:48px;font-family:sans-serif">Loading error: \'+err.message+\'</div>\';});\n';
   sc += '})();\n';
   sc += '<\/script>';
@@ -2604,9 +2663,11 @@ function renderSettings(panel) {
     if (ats.length === 0) html += `<div style="padding:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;font-size:12px;color:rgba(200,220,240,0.22);text-align:center;margin-bottom:10px">No award types yet.</div>`;
     ats.forEach(at => {
       const isEditing = state.editingAT && !state.editingAT.isNew && state.editingAT.data.id === at.id;
-      html += `<div class="at-row" id="at-${at.id}"><div class="at-row-inner">
-        <div class="at-badge">${at.image_url?`<img src="${at.image_url}">`:'🏅'}</div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:rgba(200,220,240,0.88)">${at.name}</div><div style="font-size:10px;color:rgba(200,220,240,0.22);margin-top:2px">key: ${at.key}</div></div>
+      html += `<div class="at-row" id="at-${at.id}" style="${at.glow_color?'box-shadow:0 0 14px '+at.glow_color+',inset 0 0 0 1px '+at.row_border+';background:'+at.row_bg:''}"><div class="at-row-inner">
+        <div class="at-badge" style="${at.glow_color?'background:'+at.row_bg:''}">
+          ${at.image_url?`<img src="${at.image_url}">`:'🏅'}
+        </div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${at.tag_color||'rgba(200,220,240,0.88)'}">${at.name}</div><div style="font-size:10px;color:rgba(200,220,240,0.22);margin-top:2px">key: ${at.key}</div></div>
         <button class="edit-btn-sm" data-action="editat" data-val="${at.id}">Edit</button>
         <button class="del-btn-sm" data-action="deleteat" data-val="${at.id}" style="margin-left:6px">✕</button>
       </div>${isEditing ? renderATForm() : ''}</div>`;
