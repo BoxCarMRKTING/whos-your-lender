@@ -2208,6 +2208,7 @@ function genCombinedScript(emp) {
   sc += '      canvas.width=W;canvas.height=H;\n';
   sc += '      var ctx=canvas.getContext("2d");\n';
   sc += '      if(_bioShape==="waves"){initWaves(ctx,W,H);return;}\n';
+  sc += '      if(_bioShape==="streetmap"){initStreetmap(ctx,W,H);return;}\n';
   sc += '      var N=12,R=110,circles=[],mouse={x:-9999,y:-9999};\n';
   sc += '      var REPEL=150,REPELF=10,FRIC=0.985,MAXV=7;\n';
   sc += '      for(var i=0;i<N;i++){circles.push({x:R+Math.random()*(W-R*2),y:R+Math.random()*(H-R*2),vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,r:R,c:_COLORS[i%_COLORS.length],rot:Math.random()*Math.PI*2,rotV:(Math.random()-0.5)*0.015,phase:Math.random()*Math.PI*2,phaseV:0.02+Math.random()*0.03});}\n';
@@ -2225,14 +2226,20 @@ function genCombinedScript(emp) {
   sc += '          for(var s=0;s<10;s++){var ang=s*Math.PI/5-Math.PI/2,rad=s%2===0?c.r:c.r*0.4;\n';
   sc += '            s===0?ctx.moveTo(Math.cos(ang)*rad,Math.sin(ang)*rad):ctx.lineTo(Math.cos(ang)*rad,Math.sin(ang)*rad);}\n';
   sc += '          ctx.closePath();ctx.fill();\n';
-  sc += '        } else if(_bioShape==="zany"){\n';
-  sc += '          var pts=14;ctx.beginPath();\n';
-  sc += '          for(var s=0;s<pts;s++){var a=s/pts*Math.PI*2;var spike=s%2===0?c.r:(c.r*(0.3+0.25*Math.sin(s*2.3+c.rot)));var wobble=spike+Math.sin(s*3.7+c.rot*2)*c.r*0.15;s===0?ctx.moveTo(Math.cos(a)*wobble,Math.sin(a)*wobble):ctx.lineTo(Math.cos(a)*wobble,Math.sin(a)*wobble);}\n';
-  sc += '          ctx.closePath();ctx.fill();ctx.strokeStyle=c.c;ctx.lineWidth=3;ctx.stroke();\n';
-  sc += '        } else if(_bioShape==="psychedelic"){\n';
-  sc += '          ctx.beginPath();\n';
-  sc += '          for(var s=0;s<=60;s++){var a=s/60*Math.PI*2;var r2=c.r*(0.65+0.35*Math.sin(a*3+c.phase)+0.2*Math.sin(a*5-c.phase*1.7)+0.12*Math.sin(a*7+c.phase*2.3));s===0?ctx.moveTo(Math.cos(a)*r2,Math.sin(a)*r2):ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}\n';
-  sc += '          ctx.closePath();ctx.fill();\n';
+  sc += '        } else if(_bioShape==="swirl"){\n';
+  sc += '          ctx.fillStyle="rgba(0,0,0,0)";ctx.lineWidth=5;\n';
+  sc += '          var turns=3,steps=120;\n';
+  sc += '          for(var arm=0;arm<2;arm++){\n';
+  sc += '            ctx.beginPath();\n';
+  sc += '            for(var s=0;s<=steps;s++){\n';
+  sc += '              var t=s/steps*turns*Math.PI*2;\n';
+  sc += '              var r2=(s/steps)*c.r;\n';
+  sc += '              var x2=Math.cos(t+arm*Math.PI)*r2;\n';
+  sc += '              var y2=Math.sin(t+arm*Math.PI)*r2;\n';
+  sc += '              s===0?ctx.moveTo(x2,y2):ctx.lineTo(x2,y2);\n';
+  sc += '            }\n';
+  sc += '            ctx.stroke();\n';
+  sc += '          }\n';
   sc += '        } else {\n';
   sc += '          ctx.fillStyle="rgba(0,0,0,0)";ctx.lineWidth=22;\n';
   sc += '          ctx.beginPath();ctx.arc(0,0,c.r,0,Math.PI*2);ctx.stroke();\n';
@@ -3010,7 +3017,7 @@ function renderForm(panel) {
       </div>
       <label class="field-label" style="margin-bottom:8px">Animated Shape</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        ${[['rings','⭕','Rings'],['stars','⭐','Stars'],['zany','〰️','Zany'],['psychedelic','🌀','Psyche']].map(([val,icon,lbl])=>`<button type="button" data-action="setbioshape" data-val="${val}" style="flex:1;padding:8px 4px;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'};text-align:center"><div style="font-size:16px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join('')}
+        ${[['rings','⭕','Rings'],['stars','⭐','Stars'],['swirl','🌀','Swirl'],['streetmap','🗺️','Map']].map(([val,icon,lbl])=>`<button type="button" data-action="setbioshape" data-val="${val}" style="flex:1;padding:8px 4px;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;${(f.bio_shape||'rings')===val?'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff':'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.35)'};text-align:center"><div style="font-size:16px;margin-bottom:3px">${icon}</div>${lbl}</button>`).join('')}
       </div>
     </div>
     <div class="field-wrap"><label class="field-label">Bio</label><textarea class="fi" rows="5" oninput="setF('bio',this.value)" placeholder="Full biography...">${f.bio||''}</textarea></div>`;
@@ -3154,3 +3161,25 @@ function setCodeTab(tab) { state.codeTab = tab; renderMain(); }
 </script>
 </body>
 </html>
+  sc += '    function initStreetmap(ctx,W,H){\n';
+  sc += '      canvas.width=W;canvas.height=H;\n';
+  sc += '      var col=_COLORS[0];\n';
+  sc += '      var lw=1.5;\n';
+  sc += '      function draw(){\n';
+  sc += '        ctx.clearRect(0,0,W,H);\n';
+  sc += '        ctx.strokeStyle=col;ctx.lineWidth=lw;\n';
+  sc += '        var x=0,gapV=[80,120,60,160,100,90,140,70,110,130];\n';
+  sc += '        for(var i=0;i<gapV.length;i++){x+=gapV[i%gapV.length];if(x>W)break;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}\n';
+  sc += '        var y=0,gapH=[90,60,140,80,110,70,130,100,120,90];\n';
+  sc += '        for(var i=0;i<gapH.length;i++){y+=gapH[i%gapH.length];if(y>H)break;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}\n';
+  sc += '        ctx.lineWidth=lw*0.8;\n';
+  sc += '        var diags=[[0,H*0.3,W*0.5,0],[W*0.2,H,W,H*0.1],[0,H*0.7,W*0.4,0],[W*0.6,H,W,H*0.4],[0,H*0.5,W*0.7,H],[W*0.1,0,W,H*0.6]];\n';
+  sc += '        diags.forEach(function(d){ctx.beginPath();ctx.moveTo(d[0],d[1]);ctx.lineTo(d[2],d[3]);ctx.stroke();});\n';
+  sc += '        ctx.fillStyle=col;\n';
+  sc += '        for(var xi=0,ii=0;ii<gapV.length;ii++){xi+=gapV[ii%gapV.length];if(xi>W)break;\n';
+  sc += '          for(var yi=0,jj=0;jj<gapH.length;jj++){yi+=gapH[jj%gapH.length];if(yi>H)break;\n';
+  sc += '            ctx.beginPath();ctx.arc(xi,yi,3,0,Math.PI*2);ctx.fill();}\n';
+  sc += '        }\n';
+  sc += '      }\n';
+  sc += '      draw();\n';
+  sc += '    }\n';
