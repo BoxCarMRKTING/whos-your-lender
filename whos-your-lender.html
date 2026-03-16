@@ -566,7 +566,7 @@ let state = {
   heroSearch: '',
   // Collapsed state for settings sections
   settingsOpen: { banners: false, headshots: false, teamlogos: false, awards: false, teams: false },
-  formOpen: { hero: true, details: true, bio: true, awards: false, teams: false }
+  formOpen: { hero: false, details: false, bio: false, awards: false, teams: false }
 };
 
 // ── Starfield ────────────────────────────────────────────
@@ -3074,10 +3074,8 @@ function goBackToList() {
 function renderCode(panel) {
   const emp = state.employees.find(e => String(e.id) === String(state.selId));
   if (!emp) { state.view='list'; renderMain(); return; }
-  const awards = state.currentAwards || [];
   const slug = emp.slug||(emp.first_name+'-'+emp.last_name).toLowerCase().replace(/\s+/g,'-');
-  const code = state.codeTab==='hero' ? genHeroScript(emp) : state.codeTab==='team' ? genTeamScript(emp) : genCombinedScript(emp);
-  const codeLabel = state.codeTab==='hero' ? 'Hero Script Tag' : state.codeTab==='team' ? 'Team Script Tag' : 'Hero + Bio Script Tag';
+  const code = genCombinedScript(emp);
 
   panel.innerHTML = `
     <button class="back-btn" data-action="back" style="margin-bottom:14px">← All Agents</button>
@@ -3090,30 +3088,35 @@ function renderCode(panel) {
       </div>
       <button data-action="edit" data-val="${emp.id}" style="padding:8px 16px;border-radius:7px;background:none;border:1px solid rgba(255,255,255,.14);color:rgba(200,220,240,.5);font-size:12px;white-space:nowrap">✏ Edit</button>
     </div>
+    <div style="margin:14px 0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);background:#0a0f14">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06)">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(200,220,240,0.35)">👁 LIVE PREVIEW</span>
+        <a href="https://highlandmtg.com/${slug}" target="_blank" style="font-size:11px;color:#3db9ec;text-decoration:none;opacity:0.7">Open page ↗</a>
+      </div>
+      <iframe src="https://highlandmtg.com/${slug}" style="width:100%;height:420px;border:none;display:block" loading="lazy" title="Preview ${emp.first_name} ${emp.last_name}"></iframe>
+    </div>
     <div class="live-badge" style="margin-bottom:12px">
       <span class="status-dot"></span>
       <span><strong style="color:rgba(220,235,255,0.9)">Live sync active.</strong> Paste once — every Save updates Squarespace instantly. No re-pasting ever.</span>
     </div>
-    <div class="code-tabs">
-      <button class="code-tab ${state.codeTab==='hero'?'active':''}" data-action="codetab" data-val="hero">🎯 Hero Script</button>
-      <button class="code-tab ${state.codeTab==='profile'?'active':''}" data-action="codetab" data-val="profile">👤 Hero + Bio Script</button>
-      <button class="code-tab ${state.codeTab==='team'?'active':''}" data-action="codetab" data-val="team">👥 Team Script</button>
+    <div style="margin-bottom:10px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(200,220,240,0.4)">📋 PROFILE SCRIPT</span>
     </div>
     <div style="padding:9px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:11px;color:rgba(200,220,240,0.28);margin-bottom:10px;line-height:1.6">
       <strong style="color:rgba(200,220,240,0.55)">Paste once</strong> into a Squarespace Code Block. Done forever.
     </div>
     <div class="code-box">
       <div class="code-box-header">
-        <span class="code-box-label">${codeLabel}</span>
+        <span class="code-box-label">Profile Script</span>
         <button class="code-copy-btn" data-action="copy">Copy</button>
       </div>
       <pre class="code-pre">${code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,700)}...</pre>
     </div>
     <button class="copy-full-btn" data-action="copy">📡 Copy Full Signal</button>`;
 
-  // Store code for copy buttons to reference safely
   window._currentCode = code;
 }
+
 
 function copyCurrent() {
   if (!window._currentCode) return;
