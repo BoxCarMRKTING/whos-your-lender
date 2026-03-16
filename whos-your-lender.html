@@ -2048,7 +2048,7 @@ function genCombinedScript(emp) {
   sc += '    if(!e){console.warn("WYL: employee not found",S);return;}\n';
   sc += '\n';
   sc += '    // HERO\n';
-  sc += '    (function(){var as=document.getElementById("wyl-as");if(!as){as=document.createElement("style");as.id="wyl-as";document.head.appendChild(as);}as.textContent="@keyframes wyl-sl{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}@keyframes wyl-sr{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}@keyframes wyl-su{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}@keyframes wyl-shim{0%{background-position:-200% center}100%{background-position:200% center}}";})();\n';
+  sc += '    (function(){var as=document.getElementById("wyl-as");if(!as){as=document.createElement("style");as.id="wyl-as";document.head.appendChild(as);}as.textContent="@keyframes wyl-sl{from{transform:translateX(-28px)}to{transform:none}}@keyframes wyl-sr{from{transform:translateX(28px)}to{transform:none}}@keyframes wyl-su{from{transform:translateY(18px)}to{transform:none}}@keyframes wyl-shim{0%{background-position:-200% center}100%{background-position:200% center}}";})();\n';
   sc += '    var gc="' + gradColor + '";\n';
   sc += '    function h2r(h,a){h=h.replace("#","");if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return"rgba("+r+","+g+","+b+","+a+")";}\n';
   // Logo injection - baked at generation time
