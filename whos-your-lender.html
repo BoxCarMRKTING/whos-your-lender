@@ -1574,6 +1574,9 @@ document.getElementById('main-panel').addEventListener('click', async e => {
   else if (action === 'togglesection') {
     state.settingsOpen[val] = !state.settingsOpen[val]; renderMain();
   }
+  else if (action === 'toggleform') {
+    state.formOpen[val] = !state.formOpen[val]; renderMain();
+  }
   else if (action === 'addstockphoto') {
     const urlEl = document.getElementById('stock-photo-url');
     const labelEl = document.getElementById('stock-photo-label');
