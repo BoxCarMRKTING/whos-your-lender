@@ -1672,7 +1672,7 @@ function toggleSettings() {
 
 // ── Open form ────────────────────────────────────────────
 function openForm(id) {
-  document.getElementById('settings-nav-btn').classList.remove('active');
+  const _snb=document.getElementById('settings-nav-btn');if(_snb)_snb.classList.remove('active');
   if (id) {
     // id may come in as string from onclick — find by loose comparison
     const e = state.employees.find(x => x.id == id || x.id === id);
@@ -2027,7 +2027,7 @@ function genCombinedScript(emp) {
   sc += '  if(!heroEl||!bioEl)return;\n';
   sc += '  function apiFetch(url){return fetch(url,{headers:{"apikey":K,"Authorization":"Bearer "+K}}).then(function(r){return r.json();});}\n';
   sc += '  Promise.all([\n';
-  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,employee_awards(*,award_types(*))"),\n';
+  sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&company_id=eq."+C+"&select=id,first_name,last_name,title,nmls,email,phone,apply_url,tagline,bio,photo_url,hero_image_url,slug,youtube_url,bio_dark_mode,bio_shape,photo_focal_x,photo_focal_y,hero_focal_x,hero_focal_y,instagram_url,linkedin_url,facebook_url,twitter_url,employee_awards(*,award_types(*))"),\n';
   sc += '    apiFetch(U+"/rest/v1/companies?id=eq."+C+"&select=*,calc_html"),\n';
   sc += '    apiFetch(U+"/rest/v1/employees?slug=eq."+S+"&select=id").then(function(r){\n';
   sc += '      var eid=r[0]&&r[0].id;\n';
