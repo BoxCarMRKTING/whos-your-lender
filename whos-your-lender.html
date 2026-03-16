@@ -2173,9 +2173,26 @@ function genCombinedScript(emp) {
   sc += '          var rows=Array.from(awList.querySelectorAll(".wyl-aw-row"));\n';
   sc += '          if(!rows.length)return;\n';
   sc += '          rows.forEach(function(r,i){var bdr=r.getAttribute("data-glow")||"rgba(61,185,236,0.35)";r.style.boxShadow="0 0 16px "+bdr+",inset 0 0 0 1px "+bdr;r.style.opacity="0";r.style.transform="translateX(28px)";r.style.transition="opacity 0.55s ease "+(i*0.13)+"s,transform 0.55s cubic-bezier(0.22,1,0.36,1) "+(i*0.13)+"s";setTimeout(function(el){el.style.opacity="1";el.style.transform="translateX(0)";},80+i*130,r);});\n';
-  sc += '          var t=0;\n';
-  sc += '          function wave(){t+=0.08;rows.forEach(function(r,i){var amp=7*Math.sin(t-i/rows.length*Math.PI*2);r.style.transition="transform 0.1s ease";r.style.transform="translateX("+amp+"px)";});requestAnimationFrame(wave);}\n';
-  sc += '          setTimeout(wave,400+rows.length*130);\n';
+  sc += '          function runWave(){\n';
+  sc += '            var t=0,dur=1.4,fps=60,frames=Math.round(dur*fps);\n';
+  sc += '            var step=0;\n';
+  sc += '            (function tick(){\n';
+  sc += '              if(step>frames){\n';
+  sc += '                rows.forEach(function(r){r.style.transition="transform 0.3s ease";r.style.transform="translateX(0)";});\n';
+  sc += '                setTimeout(runWave,3000+Math.random()*2000);\n';
+  sc += '                return;\n';
+  sc += '              }\n';
+  sc += '              var t2=step/frames*Math.PI*2;\n';
+  sc += '              rows.forEach(function(r,i){\n';
+  sc += '                var amp=8*Math.sin(t2-i/rows.length*Math.PI*2);\n';
+  sc += '                r.style.transition="transform 0.08s ease";\n';
+  sc += '                r.style.transform="translateX("+amp+"px)";\n';
+  sc += '              });\n';
+  sc += '              step++;\n';
+  sc += '              requestAnimationFrame(tick);\n';
+  sc += '            })();\n';
+  sc += '          }\n';
+  sc += '          setTimeout(runWave,400+rows.length*130);\n';
   sc += '        })();\n';
 
 
