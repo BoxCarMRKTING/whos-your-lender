@@ -2717,41 +2717,44 @@ async function deleteTeam(id) {
 
 function renderATForm() {
   const d = state.editingAT.data;
-  // Extract a representative hex from any stored rgba/hex color
   function toHex(val) {
-    if (!val) return '#3db9ec';
+    if (!val) return '3db9ec';
     const m = val.match(/rgba?\((\d+),(\d+),(\d+)/);
-    if (m) return '#'+[m[1],m[2],m[3]].map(v=>parseInt(v).toString(16).padStart(2,'0')).join('');
-    return val.startsWith('#') ? val : '#3db9ec';
+    if (m) return [m[1],m[2],m[3]].map(v=>parseInt(v).toString(16).padStart(2,'0')).join('');
+    return val.replace('#','');
   }
-  const currentHex = toHex(d.glow_color || d.row_border);
-  return `<div class="at-edit-form">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="field-wrap"><label class="field-label">Award Name</label><input class="fi" id="at-name" value="${d.name||''}" placeholder="Gold Award"></div>
-      <div class="field-wrap"><label class="field-label">Key (unique)</label><input class="fi" id="at-key" value="${d.key||''}" placeholder="gold"></div>
-    </div>
-    <div class="field-wrap" style="margin-bottom:10px"><label class="field-label">Badge Image URL</label><input class="fi" id="at-img" value="${d.image_url||''}" placeholder="https://..."></div>
-    <div class="field-wrap" style="margin-bottom:14px">
-      <label class="field-label" style="margin-bottom:8px">Award Color</label>
-      <div style="display:flex;align-items:center;gap:12px">
-        <input type="color" id="at-color-picker" value="${currentHex}" oninput="wylColor(this.value)"
-          style="width:48px;height:48px;border-radius:9px;border:2px solid rgba(255,255,255,0.12);cursor:pointer;background:none;padding:2px">
-        <div>
-          <div style="font-size:13px;color:rgba(220,235,255,0.8);font-weight:600">Pick one color</div>
-          <div style="font-size:11px;color:rgba(200,220,240,0.35);margin-top:2px">Glow, background, and border auto-generate</div>
-        </div>
-      </div>
-    </div>
-    <input type="hidden" id="at-glow_color" value="${d.glow_color||''}">
-    <input type="hidden" id="at-row_bg" value="${d.row_bg||''}">
-    <input type="hidden" id="at-row_border" value="${d.row_border||''}">
-    <input type="hidden" id="at-tag_color" value="${d.tag_color||''}">
-    <input type="hidden" id="at-tag_bg" value="${d.tag_bg||''}">
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="save-at-btn" data-action="saveat">Save</button>
-      <button class="cancel-at-btn" data-action="cancelat">Cancel</button>
-    </div>
-  </div>`;
+  const curHex = toHex(d.glow_color || d.row_border);
+  const SWATCHES = [
+    ['Blue','3db9ec'],['Cyan','22d3ee'],['Green','3de88a'],['Lime','a3e635'],
+    ['Gold','fbbf24'],['Orange','fb923c'],['Red','f87171'],['Pink','f472b6'],
+    ['Purple','a78bfa'],['Silver','cbd5e1']
+  ];
+  const swatchHtml = SWATCHES.map(function(sw){
+    const lbl=sw[0], hex=sw[1];
+    const active = curHex===hex;
+    const border = active ? '3px solid #fff' : '3px solid transparent';
+    return '<button type="button" onclick="wylColor(\'#'+hex+'\')" title="'+lbl+'" style="width:36px;height:36px;border-radius:9px;border:'+border+';background:#'+hex+';cursor:pointer;transition:transform .15s,border .15s;flex-shrink:0" onmouseover="this.style.transform=\'scale(1.18)\'" onmouseout="this.style.transform=\'\'"></button>';
+  }).join('');
+  return '<div class="at-edit-form">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+    + '<div class="field-wrap"><label class="field-label">Award Name</label><input class="fi" id="at-name" value="'+( d.name||'')+'" placeholder="Gold Award"></div>'
+    + '<div class="field-wrap"><label class="field-label">Key (unique)</label><input class="fi" id="at-key" value="'+(d.key||'')+'" placeholder="gold"></div>'
+    + '</div>'
+    + '<div class="field-wrap" style="margin-bottom:14px"><label class="field-label">Badge Image URL</label><input class="fi" id="at-img" value="'+(d.image_url||'')+'" placeholder="https://..."></div>'
+    + '<div class="field-wrap" style="margin-bottom:14px">'
+    + '<label class="field-label" style="margin-bottom:10px">Award Color</label>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+swatchHtml+'</div>'
+    + '<div style="font-size:10px;color:rgba(200,220,240,0.3);margin-top:8px">All colors auto-set from your choice</div>'
+    + '</div>'
+    + '<input type="hidden" id="at-glow_color" value="'+(d.glow_color||'')+'">'
+    + '<input type="hidden" id="at-row_bg" value="'+(d.row_bg||'')+'">'
+    + '<input type="hidden" id="at-row_border" value="'+(d.row_border||'')+'">'
+    + '<input type="hidden" id="at-tag_color" value="'+(d.tag_color||'')+'">'
+    + '<input type="hidden" id="at-tag_bg" value="'+(d.tag_bg||'')+'">'
+    + '<div style="display:flex;gap:8px;margin-top:12px">'
+    + '<button class="save-at-btn" data-action="saveat">Save</button>'
+    + '<button class="cancel-at-btn" data-action="cancelat">Cancel</button>'
+    + '</div></div>';
 }
 
 
@@ -2760,14 +2763,24 @@ function wylColor(hex) {
   hex = hex.replace('#','');
   if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
   const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  set('at-color-picker', '#'+hex);
-  set('at-glow_color',  `rgba(${r},${g},${b},0.55)`);
-  set('at-row_bg',      `rgba(${r},${g},${b},0.07)`);
-  set('at-row_border',  `rgba(${r},${g},${b},0.30)`);
-  set('at-tag_color',   `rgba(${r},${g},${b},0.95)`);
-  set('at-tag_bg',      `rgba(${r},${g},${b},0.12)`);
+  const vals = {
+    glow_color: `rgba(${r},${g},${b},0.55)`,
+    row_bg:     `rgba(${r},${g},${b},0.07)`,
+    row_border: `rgba(${r},${g},${b},0.30)`,
+    tag_color:  `rgba(${r},${g},${b},0.95)`,
+    tag_bg:     `rgba(${r},${g},${b},0.12)`,
+  };
+  // Update state directly so saveAT picks it up
+  if (state.editingAT && state.editingAT.data) {
+    Object.assign(state.editingAT.data, vals);
+  }
+  // Also update any visible inputs
+  Object.entries(vals).forEach(([k,v]) => {
+    const el = document.getElementById('at-'+k);
+    if (el) el.value = v;
+  });
 }
+
 
 function wireATForm() {
   const ids = ['name','key','img','glow_color','row_bg','row_border','tag_color','tag_bg'];
