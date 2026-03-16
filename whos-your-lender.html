@@ -2157,8 +2157,25 @@ function genCombinedScript(emp) {
   sc += '    if(awards){\n';
   sc += '      var awH=document.createElement("h2");awH.style.cssText="font-size:26px;font-weight:900;color:"+textPrimary+";margin-bottom:20px";awH.textContent="Awards";rightCol.appendChild(awH);\n';
   sc += '      var awList=document.createElement("div");awList.style.cssText="display:flex;flex-direction:column;gap:14px";awList.innerHTML=awards;rightCol.appendChild(awList);\n';
-  sc += '      awList.querySelectorAll(".wyl-aw-row").forEach(function(r){r.style.transition="transform 0.3s cubic-bezier(0.34,1.56,0.64,1)";});\n';
-  sc += '      (function(){var rows=Array.from(awList.querySelectorAll(".wyl-aw-row"));var N=rows.length;if(!N)return;var wi=0;function nxt(){rows[wi].style.transform="translateX(10px)";setTimeout(function(){rows[wi].style.transform="translateX(0)";wi=(wi+1)%N;setTimeout(nxt,400);},280);}nxt();})();\n';
+  sc += '      (function(){\n';
+  sc += '        var rows=Array.from(awList.querySelectorAll(\'.wyl-aw-row\'));\n';
+  sc += '        if(!rows.length)return;\n';
+  sc += '        rows.forEach(function(r,i){\n';
+  sc += '          r.style.opacity=\'0\';r.style.transform=\'translateX(40px)\';\n';
+  sc += '          r.style.transition=\'opacity 0.5s ease \'+(i*0.12)+\'s,transform 0.5s cubic-bezier(0.22,1,0.36,1) \'+(i*0.12)+\'s,box-shadow 0.4s ease\';\n';
+  sc += '          setTimeout(function(el){el.style.opacity=\'1\';el.style.transform=\'translateX(0)\';},80+i*120,r);\n';
+  sc += '        });\n';
+  sc += '        var wi=0;\n';
+  sc += '        function shimmer(){\n';
+  sc += '          rows.forEach(function(r){r.style.boxShadow=\'none\';});\n';
+  sc += '          var bdr=rows[wi].getAttribute(\'data-glow\')||\'rgba(61,185,236,0.35)\';\n';
+  sc += '          rows[wi].style.boxShadow=\'0 0 20px \'+bdr+\',inset 0 0 8px rgba(255,255,255,0.02)\';\n';
+  sc += '          wi=(wi+1)%rows.length;\n';
+  sc += '          setTimeout(shimmer,1800);\n';
+  sc += '        }\n';
+  sc += '        setTimeout(shimmer,600+rows.length*120);\n';
+  sc += '      })();\n';
+
 
   sc += '    }\n';
   sc += '    content.appendChild(leftCol);content.appendChild(rightCol);bioEl.appendChild(content);\n';
