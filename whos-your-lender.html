@@ -2302,6 +2302,26 @@ function genCombinedScript(emp) {
   sc += '      }\n';
   sc += '      draw();\n';
   sc += '    }\n';
+  sc += '    function initStreetmap(ctx,W,H){\n';
+  sc += '      canvas.width=W;canvas.height=H;\n';
+  sc += '      var baseCol=_COLORS[0];\n';
+  sc += '      var col=baseCol.replace(/,[\\d.]+\\)/,\',0.35)\');\n';
+  sc += '      var col2=baseCol.replace(/,[\\d.]+\\)/,\',0.18)\');\n';
+  sc += '      ctx.clearRect(0,0,W,H);\n';
+  sc += '      ctx.strokeStyle=col;ctx.lineWidth=1.8;\n';
+  sc += '      var y=0,gapH=[88,62,140,75,110,68,128,95,118,82];\n';
+  sc += '      for(var i=0;i<20;i++){y+=gapH[i%gapH.length];if(y>H)break;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}\n';
+  sc += '      var x=0,gapV=[78,118,58,155,98,88,138,68,108,125];\n';
+  sc += '      for(var i=0;i<20;i++){x+=gapV[i%gapV.length];if(x>W)break;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}\n';
+  sc += '      ctx.strokeStyle=col2;ctx.lineWidth=1.2;\n';
+  sc += '      [[0,H*0.3,W*0.6,0],[W*0.15,H,W,H*0.12],[0,H*0.65,W*0.45,0],[W*0.55,H,W,H*0.38],[0,H*0.5,W*0.75,H],[W*0.08,0,W,H*0.62]].forEach(function(d){ctx.beginPath();ctx.moveTo(d[0],d[1]);ctx.lineTo(d[2],d[3]);ctx.stroke();});\n';
+  sc += '      ctx.fillStyle=col;\n';
+  sc += '      var xs=[],ys=[];\n';
+  sc += '      for(var xi=0,i=0;i<20;i++){xi+=gapV[i%gapV.length];if(xi>W)break;xs.push(xi);}\n';
+  sc += '      for(var yi=0,i=0;i<20;i++){yi+=gapH[i%gapH.length];if(yi>H)break;ys.push(yi);}\n';
+  sc += '      xs.forEach(function(xi){ys.forEach(function(yi){ctx.beginPath();ctx.arc(xi,yi,2.5,0,Math.PI*2);ctx.fill();});});\n';
+  sc += '    }\n';
+  sc += '\n';
   sc += '    setTimeout(initPhysics,200);\n';
   sc += '    var _rot;new ResizeObserver(function(){clearTimeout(_rot);_rot=setTimeout(initPhysics,150);}).observe(bioEl);\n';
 
