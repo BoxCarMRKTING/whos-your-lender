@@ -258,7 +258,7 @@ textarea.fi{resize:vertical;line-height:1.55}
         onerror="this.style.display='none'" alt="UFO">
     </div>
     <div class="login-card">
-      <img class="login-logo" src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/Who's%20Your%20Lender.png" onerror="this.style.display='none'" alt="WYL">
+      <img class="login-logo" src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/Who's%20Your%20Lender.png" onerror="this.style.display='none'" alt="WYL">
       <div class="login-title">Who's Your Lender</div>
       <div class="login-sub">— Field Operations Center —</div>
       <div class="login-status">
@@ -343,7 +343,7 @@ textarea.fi{resize:vertical;line-height:1.55}
 
   <!-- Top nav -->
   <div id="top-nav">
-    <img class="logo-img" src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/Who's%20Your%20Lender.png" onerror="this.style.display='none'" alt="WYL" style="cursor:pointer" onclick="resetToHome()">
+    <img class="logo-img" src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/Who's%20Your%20Lender.png" onerror="this.style.display='none'" alt="WYL" style="cursor:pointer" onclick="resetToHome()">
     <span class="nav-title" style="cursor:pointer" onclick="resetToHome()">Who's Your Lender</span>
     <div class="nav-div"></div>
     <span class="nav-sub">BoxCar Mortgage</span>
@@ -394,7 +394,7 @@ textarea.fi{resize:vertical;line-height:1.55}
         <img class="ufo-gif" src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/sign/Assets/flying%20saucer.gif?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzBlZWU0YS03N2ZkLTQ3ODQtYWZiNi1lNjdkOWZmMzllMTIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBc3NldHMvZmx5aW5nIHNhdWNlci5naWYiLCJpYXQiOjE3NzM1NDk0MzksImV4cCI6MjcxOTYyOTQzOX0.ndhlOKyy7Jam_B_e0TfFsAZ9TnhJ1TY5BSd42hFJsSIA" onerror="this.style.display='none'" alt="UFO">
         <div class="empty-title" id="empty-title">Field Ops</div>
         <div class="empty-sub">Select a lender or initiate an abduction</div>
-        <img src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/Who's%20Your%20Lender.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(85%,520px);object-fit:contain;opacity:0.07;pointer-events:none;user-select:none" onerror="this.style.display='none'" alt="">
+        <img src="https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/Who's%20Your%20Lender.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(85%,520px);object-fit:contain;opacity:0.07;pointer-events:none;user-select:none" onerror="this.style.display='none'" alt="">
       </div>
     </div>
   </div>
@@ -409,15 +409,15 @@ const ABDUCTED_GIF = "https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object
 
 // ── Company logo presets ─────────────────────────────────
 // Replace these URLs once Austin uploads the final logo files
-const LOGOS = {
+const logos = {
   highland: [
-    { label: 'HM Black Icon',  url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/HMTG%20Black%20Icon.png' },
-    { label: 'HM Color',       url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/HMTG%20Color.png' },
-    { label: 'HM White Icon',  url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/HMTG%20White%20Icon.png' },
+    { label: 'HM Black Icon',  url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/HMTG%20Black%20Icon.png' },
+    { label: 'HM Color',       url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/HMTG%20Color.png' },
+    { label: 'HM White Icon',  url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/HMTG%20White%20Icon.png' },
   ],
   valor: [
-    { label: 'Valor Black Icon', url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/Valor%20Black%20Icon.png' },
-    { label: 'Valor White',      url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/Logos/Valor%20White.png' },
+    { label: 'Valor Black Icon', url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/Valor%20Black%20Icon.png' },
+    { label: 'Valor White',      url: 'https://wiinisurdblqbniuzwrk.supabase.co/storage/v1/object/public/logos/Valor%20White.png' },
   ],
 };
 
@@ -560,7 +560,7 @@ let state = {
   selId: null, view: 'list', formData: {}, formAwards: [], formTeams: [],
   codeTab: 'hero', editingAT: null, search: '', sort: 'name', sortDir: 1,
   empType: 'sales', teams: [], editingTeam: null,
-  stockPhotos: [], headshotLibrary: [], teamLogos: [], calcHtmls: {},
+  stockPhotos: [], headshotLibrary: [], teamlogos: [], calcHtmls: {},
   // Collapsed state for picker dropdowns in form
   showHeroPicker: false, showHeadshotPicker: false, showLogoPicker: false,
   heroSearch: '',
@@ -932,7 +932,7 @@ async function loadLibraries() {
   if (!data) return;
   state.stockPhotos     = data.filter(p => p.category === 'banner' || !p.category);
   state.headshotLibrary = data.filter(p => p.category === 'headshot');
-  state.teamLogos       = data.filter(p => p.category === 'teamlogo');
+  state.teamlogos       = data.filter(p => p.category === 'teamlogo');
 }
 function loadStockPhotos() { return loadLibraries(); }
 async function loadCompanies() {
@@ -1125,7 +1125,7 @@ async function renameStockPhoto(id, label) {
   await sb.from('stock_photos').update({ label }).eq('id', id);
   await loadLibraries();
   // update local state without full re-render
-  const p = state.stockPhotos.find(x=>x.id===id)||state.headshotLibrary.find(x=>x.id===id)||state.teamLogos.find(x=>x.id===id);
+  const p = state.stockPhotos.find(x=>x.id===id)||state.headshotLibrary.find(x=>x.id===id)||state.teamlogos.find(x=>x.id===id);
   if (p) p.label = label;
 }
 
@@ -2608,14 +2608,14 @@ function renderSettings(panel) {
   // 3. Team Logo Library
   html += `<div style="${libSectionStyle(state.settingsOpen.teamlogos)}">
     <div style="${libHeaderStyle}" data-action="togglesection" data-val="teamlogos">
-      <span style="${libTitleStyle}">🏷 Team Logo Library (${state.teamLogos.length})</span>${libChevron(state.settingsOpen.teamlogos)}
+      <span style="${libTitleStyle}">🏷 Team Logo Library (${state.teamlogos.length})</span>${libChevron(state.settingsOpen.teamlogos)}
     </div>`;
   if (state.settingsOpen.teamlogos) {
     html += `<div style="padding:12px 14px">`;
     html += `<p style="font-size:11px;color:rgba(200,220,240,0.28);margin-bottom:10px">Team logos available to assign to any lender's hero. PNG with transparent background recommended.</p>`;
-    if (state.teamLogos.length) {
+    if (state.teamlogos.length) {
       html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">`;
-      state.teamLogos.forEach(p => { html += `<div style="position:relative;padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;gap:8px"><img src="${p.url}" style="height:28px;object-fit:contain"><span style="font-size:11px;color:rgba(200,220,240,0.45)">${p.label||'Logo'}</span><button data-action="deletestockphoto" data-val="${p.id}" style="padding:2px 6px;border-radius:4px;background:rgba(255,50,50,0.6);border:none;color:#fff;font-size:10px;cursor:pointer">✕</button></div>`; });
+      state.teamlogos.forEach(p => { html += `<div style="position:relative;padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;gap:8px"><img src="${p.url}" style="height:28px;object-fit:contain"><span style="font-size:11px;color:rgba(200,220,240,0.45)">${p.label||'Logo'}</span><button data-action="deletestockphoto" data-val="${p.id}" style="padding:2px 6px;border-radius:4px;background:rgba(255,50,50,0.6);border:none;color:#fff;font-size:10px;cursor:pointer">✕</button></div>`; });
       html += `</div>`;
     } else html += `<div style="padding:10px;font-size:11px;color:rgba(200,220,240,0.2);text-align:center;margin-bottom:10px">No team logos yet.</div>`;
     html += `<div style="display:flex;gap:6px;margin-bottom:8px">
@@ -2670,7 +2670,7 @@ function renderTeamForm() {
   const d = state.editingTeam?.data || {};
   const isNew = state.editingTeam?.isNew;
   const teamId = d.id ? String(d.id) : null;
-  const myLogos = teamId ? state.teamLogos.filter(l => String(l.team_id) === teamId) : [];
+  const mylogos = teamId ? state.teamlogos.filter(l => String(l.team_id) === teamId) : [];
   return `<div class="at-edit-form">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div class="field-wrap"><label class="field-label">Team Name</label><input class="fi" id="team-name" value="${d.name||''}" placeholder="The Milam Team"></div>
@@ -2684,8 +2684,8 @@ function renderTeamForm() {
     <div class="field-wrap" style="margin-bottom:0">
       <label class="field-label">Logo Variants <span style="font-size:10px;color:rgba(200,220,240,0.3);font-weight:400;text-transform:none;letter-spacing:0">Upload color options — lenders on this team pick from these in their profile</span></label>
       ${isNew ? '<div style="padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:rgba(200,220,240,0.35);margin-bottom:10px">💡 Save the team first, then add logos.</div>' : `
-      ${myLogos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-        ${myLogos.map(l => `<div style="padding:7px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;display:flex;align-items:center;gap:10px">
+      ${mylogos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        ${mylogos.map(l => `<div style="padding:7px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;display:flex;align-items:center;gap:10px">
           <img src="${l.url}" style="height:28px;max-width:80px;object-fit:contain" onerror="this.style.display='none'">
           <span style="font-size:11px;color:rgba(200,220,240,0.55)">${l.label||'Logo'}</span>
           <button data-action="deletestockphoto" data-val="${l.id}" style="padding:2px 7px;border-radius:4px;background:rgba(255,50,50,0.1);border:1px solid rgba(255,50,50,0.22);color:rgba(255,80,80,0.65);font-size:10px;cursor:pointer">✕</button>
@@ -2735,7 +2735,7 @@ async function saveTeam() {
     const { data } = await sb.from('teams').insert(payload).select().single();
     // If any logos were staged under __new__, reassign them
     if (data?.id) {
-      const staged = state.teamLogos.filter(l => l.team_id === '__new__');
+      const staged = state.teamlogos.filter(l => l.team_id === '__new__');
       for (const l of staged) {
         await sb.from('stock_photos').update({ team_id: data.id }).eq('id', l.id);
       }
@@ -2921,11 +2921,11 @@ function renderForm(panel) {
       </button>
       ${state.showLogoPicker ? `
       <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px">
-        <div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${state.coId==='highland'?'Highland':'Valor'} Logos</div>
+        <div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${state.coId==='highland'?'Highland':'Valor'} logos</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${(LOGOS[state.coId]||[]).map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
+          ${(logos[state.coId]||[]).map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;transition:border .15s;display:flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;object-fit:contain;pointer-events:none" onerror="this.style.opacity=0.2"><span style="font-size:10px;color:rgba(200,220,240,0.5);pointer-events:none">${l.label}</span></div>`).join('')}
         </div>
-        ${(()=>{const mt=state.teams.filter(t=>state.formTeams.includes(t.id));if(!mt.length)return '';const tl=state.teamLogos.filter(l=>mt.some(t=>String(l.team_id)===String(t.id)));if(!tl.length)return '';return `<div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${mt.length===1?mt[0].name+' Logos':'Team Logos'}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tl.map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;display:inline-flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;max-width:70px;object-fit:contain;pointer-events:none"><span style="font-size:10px;color:rgba(200,220,240,0.5)">${l.label||'Logo'}</span></div>`).join('')}</div>`;})()}
+        ${(()=>{const mt=state.teams.filter(t=>state.formTeams.includes(t.id));if(!mt.length)return '';const tl=state.teamlogos.filter(l=>mt.some(t=>String(l.team_id)===String(t.id)));if(!tl.length)return '';return `<div style="font-size:10px;color:rgba(200,220,240,0.35);letter-spacing:1px;text-transform:uppercase">${mt.length===1?mt[0].name+' logos':'Team logos'}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tl.map(l=>`<div data-action="picklogo" data-val="${l.url}" style="padding:6px 10px;border-radius:7px;background:rgba(255,255,255,0.07);border:2px solid ${f.hero_logo_url===l.url?'rgba(255,255,255,0.5)':'transparent'};cursor:pointer;display:inline-flex;align-items:center;gap:8px"><img src="${l.url}" style="height:22px;max-width:70px;object-fit:contain;pointer-events:none"><span style="font-size:10px;color:rgba(200,220,240,0.5)">${l.label||'Logo'}</span></div>`).join('')}</div>`;})()}
         <div style="display:flex;gap:6px">
           ${['auto','light','dark','none'].map(m=>`<button type="button" data-action="setherologomode" data-val="${m}" style="padding:4px 10px;border-radius:5px;font-size:10px;cursor:pointer;${(f.hero_logo_mode||'auto')===m?'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(220,235,255,0.9)':'background:transparent;border:1px solid rgba(255,255,255,0.08);color:rgba(200,220,240,0.3)'}">${m.charAt(0).toUpperCase()+m.slice(1)}</button>`).join('')}
         </div>
